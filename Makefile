@@ -1,6 +1,6 @@
 SRC=snafu
 CC=gcc
-CFLAGS=-O3 -Wall -Wextra
+CFLAGS=-Wall -Wextra
 LDFLAGS=-I. -L. -l$(SRC)
 
 all: clean build main
