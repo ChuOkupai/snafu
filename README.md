@@ -1,0 +1,2 @@
+# snafu
+Interactive text adventure
