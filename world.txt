@@ -1,4 +1,4 @@
-2 pays : IngridLand, Hoffman
+2 pays en guerre: IngridLand, Hoffman
 
 IngridLand : 4 villes:  Main, Pito, Tyr, Xzy
              3 dongons: Terre, Eau, Feu  + 1 dongon: l'Air
