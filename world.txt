@@ -5,7 +5,7 @@ IngridLand : 4 villes:  Main, Pito, Tyr, Xzy
              
 Hoffman : inconnu
 
-Ville possédant vendeur d'équipements, potion,...
+Villes possédent vendeur d'équipements, potion,...
 
 =======But : détronner le roi=======
 plusieurs moyens : - abbatre le roi
