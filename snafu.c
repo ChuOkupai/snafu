@@ -1,11 +1,16 @@
 #include <snafu.h>
 
-void prints(char *s, useconds_t dt)
+void prints(char *s, float dt)
 {
+	struct timespec t;
+
+	t.tv_sec = (int)dt;
+	t.tv_nsec = 1000000000 * (dt - t.tv_sec);
+	printf("dt = %ld.%ld\n", t.tv_sec, t.tv_nsec);
 	while (*s)
 	{
 		write(1, s, 1);
-		usleep(dt);
+		nanosleep(&t, NULL);
 		s++;
 	}
 }

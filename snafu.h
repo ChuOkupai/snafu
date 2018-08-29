@@ -6,10 +6,10 @@
 #include <time.h>
 #include <unistd.h>
 
-#define DEFAULT_DT	47500
+#define DEFAULT_DT	0.05
 
 /* affiche une chaîne de caractères avec un délai t entre chaque caractère */
-void prints(char *s, useconds_t dt);
+void prints(char *s, float dt);
 
 /* renvoie un int aléatoire entre min et max */
 int randi(int min, int max);
