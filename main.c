@@ -10,12 +10,12 @@ int main(void)
 	tcsetattr(0, TCSANOW, &work);
 
 	start();
-	prints("Cette phrase est un test pour voir comment se comportent les fonctions...", CFG_TEXT_SPEED);
+	rdial("data/image/test", "data/dialog/test", CFG_TEXT_SPEED);
 	getchar();
-	clear();
-	hud(CFG_HUD_0);
+	rdial("data/image/empty", "data/dialog/marguerite", CFG_TEXT_SPEED);
 	getchar();
-	clear();
+	rdial("data/image/empty", "data/dialog/marguerite_actions", CFG_TEXT_SPEED);
+	getchar();
 
 	tcsetattr(0, TCSANOW, &save);
 	setcur(1);

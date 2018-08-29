@@ -4,13 +4,41 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 #include <termios.h>
 #include <unistd.h>
 
-#define CFG_HUD_0		"┌", "┐", "└", "┘", "─", "│"
-#define CFG_HUD_1		"╔", "╗", "╚", "╝", "═", "║"
-#define CFG_TEXT_SPEED	0.06
+#define CFG_HUD			"┌", "┐", "└", "┘", "─", "│"
+#define CFG_IMG_X		78
+#define CFG_IMG_Y		10
+#define CFG_TEXT_LENGTH	80
+#define CFG_TEXT_SPEED	0.05
+
+#define MODE_MENU	0
+#define MODE_DIAL	1
+#define MODE_INV	2
+#define MODE_MAP	3
+
+typedef struct window
+{
+	int	cursor;
+	int hud;
+	int mode;
+}	Window;
+
+Window w;
+
+typedef struct entity
+{
+	char	*name;
+	int		attack;
+	int		defense;
+	int		maxhp;
+	int		hp;
+	float	level;
+	float	xpmultiplier;
+}	Entity;
 
 /* nettoie l'écran */
 void clear();
@@ -44,5 +72,11 @@ int start();
  *  vl  : vertical line
  **/
 void hud(char *tlc, char *trc, char *llc, char *lrc, char *hl, char *vl);
+
+/* affiche un dialogue et attend une action du joueur */
+/** renvoie 0...n pour l'option choisie ou -1
+ *  on suppose que l'image est parfaite, lol !
+ **/
+int rdial(char *image, char *dialog, float dt);
 
 #endif /* snafu.h  */
