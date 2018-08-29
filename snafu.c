@@ -1,4 +1,33 @@
 #include <snafu.h>
+ 
+int kbhit(void)
+{
+	struct termios oldt, newt;
+	int c, oldf;
+
+	tcgetattr(STDIN_FILENO, &oldt);
+	newt = oldt;
+	newt.c_lflag &= ~(ICANON | ECHO);
+	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+	oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+	fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+	c = getchar();
+	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+	fcntl(STDIN_FILENO, F_SETFL, oldf);
+	if(c != EOF)
+	{
+		ungetc(c, stdin);
+		return 1;
+	}
+	return 0;
+}
+
+void wconfirm()
+{
+	while (1)
+		if (getchar() == '\n')
+			return;
+}
 
 void prints(char *s, float dt)
 {
@@ -6,12 +35,15 @@ void prints(char *s, float dt)
 
 	t.tv_sec = (int)dt;
 	t.tv_nsec = 1000000000 * (dt - t.tv_sec);
-	printf("dt = %ld.%ld\n", t.tv_sec, t.tv_nsec);
-	while (*s)
+	for (int c = 0; *s; s++)
 	{
 		write(1, s, 1);
-		nanosleep(&t, NULL);
-		s++;
+		if (c != '\n' && c != ' ')
+		{
+			nanosleep(&t, NULL);
+			if (kbhit())
+				c = getchar();
+		}
 	}
 }
 
