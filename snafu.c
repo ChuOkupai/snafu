@@ -30,9 +30,8 @@ void prints(char *s, float dt)
 	t.tv_nsec = 1000000000 * (dt - t.tv_sec);
 	for (int c = 0; *s; s++)
 	{
-		if (write(1, s, 1) < 0)
-			break;
-		if (c != '\n' && c != ' ')
+		putchar(*s);
+		if (c != '\n')
 		{
 			nanosleep(&t, NULL);
 			if (kbhit())
@@ -57,4 +56,30 @@ int start()
 	srand(time(NULL));
 	system("clear");
 	return 0;
+}
+
+void hud(char *tlc, char *trc, char *llc, char *lrc, char *hl, char *vl)
+{
+	int i, j;
+	
+	printf("%s", tlc);
+	for (i = 0; i < 78; i++)
+		printf("%s", hl);
+	puts(trc);
+	for (i = 0; i < 10; i++)
+	{
+		for (j = 0; j < 81; j++)
+		{
+			if (j > 0 && j < 79)
+				putchar(' ');
+			else if (j != 80)
+				printf("%s", vl);
+			else
+				putchar('\n');
+		}
+	}
+	printf("%s", llc);
+	for (i = 0; i < 78; i++)
+		printf("%s", hl);
+	puts(lrc);
 }

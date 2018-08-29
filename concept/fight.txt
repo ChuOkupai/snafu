@@ -1,0 +1,7 @@
+Match terminé lorsque qu'un adversaire fuit ou a ses points de vie réduit à zéros
+Utilisation de plusieurs armes et sorts
+
+Possibilité d'utilisé le terrain à son avantages ou à son désavantages et certains event (ex:
+éteindre les torches pour aveuglé son adversaires).Combos avec les évènement du terrain
+
+Attaque avec combos en utilisant les touche du claviers(...comme dans un jeu de combat)
