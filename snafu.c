@@ -1,4 +1,17 @@
 #include <snafu.h>
+
+void clear()
+{
+	system("clear");
+}
+
+void setcur(int on)
+{
+	if (on)
+		system("setterm -cursor on");
+	else
+		system("setterm -cursor off");
+}
  
 int kbhit(void)
 {
@@ -28,6 +41,7 @@ void prints(char *s, float dt)
 
 	t.tv_sec = (int)dt;
 	t.tv_nsec = 1000000000 * (dt - t.tv_sec);
+	setcur(1);
 	for (int c = 0; *s; s++)
 	{
 		putchar(*s);
@@ -39,6 +53,7 @@ void prints(char *s, float dt)
 		}
 	}
 	getchar();
+	setcur(0);
 }
 
 int randi(int min, int max)
@@ -54,7 +69,8 @@ float randf()
 int start()
 {
 	srand(time(NULL));
-	system("clear");
+	clear();
+	setcur(0);
 	return 0;
 }
 

@@ -12,6 +12,12 @@
 #define HUD_CFG_1	"╔", "╗", "╚", "╝", "═", "║"
 #define HUD_CFG_2	"o", "o", "o", "o", "-", "|"
 
+/* nettoie l'écran */
+void clear();
+
+/* active ou désactive le curseur */
+void setcur(int on);
+
 /* détecte si une touche du clavier a été frappée */
 /** renvoie une valeur non nulle si vrai **/
 int kbhit(void);

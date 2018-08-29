@@ -3,7 +3,7 @@
 
 void testhud(char *tlc, char *trc, char *llc, char *lrc, char *hl, char *vl)
 {
-	system("clear");
+	clear();
 	hud(tlc, trc, llc, lrc, hl, vl);
 	prints("HUD test", DT);
 }
@@ -24,8 +24,9 @@ int main(void)
 	testhud(HUD_CFG_0);
 	testhud(HUD_CFG_1);
 	testhud(HUD_CFG_2);
-	system("clear");
+	clear();
 
 	tcsetattr(0, TCSANOW, &save);
+	setcur(1);
 	return 0;
 }
