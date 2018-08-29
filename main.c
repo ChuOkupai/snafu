@@ -10,7 +10,7 @@ int main(void)
 	tcsetattr(0, TCSANOW, &work);
 
 	start();
-	prints("\nCette phrase est un test pour voir comment se comportent les fonctions...", CFG_TEXT_SPEED);
+	prints("Cette phrase est un test pour voir comment se comportent les fonctions...", CFG_TEXT_SPEED);
 	getchar();
 	clear();
 	hud(CFG_HUD_0);
