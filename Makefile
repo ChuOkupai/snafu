@@ -1,6 +1,6 @@
 SRC=snafu
 CC=gcc
-CFLAGS=-O3 -Wall -Wextra
+CFLAGS=-Wall -Wextra
 LDFLAGS=-I. -L. -l$(SRC)
 
 all: clean build main
@@ -16,4 +16,4 @@ main:
 	$(CC) $(CFLAGS) main.c -o $(SRC).out $(LDFLAGS)
 
 run:
-	./$(SRC).out
+	LD_LIBRARY_PATH=. ./$(SRC).out

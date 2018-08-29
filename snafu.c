@@ -14,19 +14,12 @@ int kbhit(void)
 	c = getchar();
 	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 	fcntl(STDIN_FILENO, F_SETFL, oldf);
-	if(c != EOF)
+	if (c != EOF)
 	{
 		ungetc(c, stdin);
 		return 1;
 	}
 	return 0;
-}
-
-void wconfirm()
-{
-	while (1)
-		if (getchar() == '\n')
-			return;
 }
 
 void prints(char *s, float dt)
@@ -37,7 +30,8 @@ void prints(char *s, float dt)
 	t.tv_nsec = 1000000000 * (dt - t.tv_sec);
 	for (int c = 0; *s; s++)
 	{
-		write(1, s, 1);
+		if (write(1, s, 1) < 0)
+			break;
 		if (c != '\n' && c != ' ')
 		{
 			nanosleep(&t, NULL);
@@ -45,6 +39,7 @@ void prints(char *s, float dt)
 				c = getchar();
 		}
 	}
+	getchar();
 }
 
 int randi(int min, int max)
@@ -60,5 +55,6 @@ float randf()
 int start()
 {
 	srand(time(NULL));
+	system("clear");
 	return 0;
 }
