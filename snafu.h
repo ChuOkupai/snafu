@@ -8,9 +8,9 @@
 #include <termios.h>
 #include <unistd.h>
 
-#define HUD_CFG_0	"┌", "┐", "└", "┘", "─", "│"
-#define HUD_CFG_1	"╔", "╗", "╚", "╝", "═", "║"
-#define HUD_CFG_2	"o", "o", "o", "o", "-", "|"
+#define CFG_HUD_0		"┌", "┐", "└", "┘", "─", "│"
+#define CFG_HUD_1		"╔", "╗", "╚", "╝", "═", "║"
+#define CFG_TEXT_SPEED	0.06
 
 /* nettoie l'écran */
 void clear();

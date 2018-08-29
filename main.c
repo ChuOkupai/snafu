@@ -1,12 +1,4 @@
 #include <snafu.h>
-#define DT	0.06
-
-void testhud(char *tlc, char *trc, char *llc, char *lrc, char *hl, char *vl)
-{
-	clear();
-	hud(tlc, trc, llc, lrc, hl, vl);
-	prints("HUD test", DT);
-}
 
 int main(void)
 {
@@ -18,12 +10,11 @@ int main(void)
 	tcsetattr(0, TCSANOW, &work);
 
 	start();
-	prints("Hello, World!", DT);
-	prints("\nCette phrase est un test pour voir comment se comportent les fonctions...", DT);
-	prints("\nC'est génial, non ?", DT);
-	testhud(HUD_CFG_0);
-	testhud(HUD_CFG_1);
-	testhud(HUD_CFG_2);
+	prints("\nCette phrase est un test pour voir comment se comportent les fonctions...", CFG_TEXT_SPEED);
+	getchar();
+	clear();
+	hud(CFG_HUD_0);
+	getchar();
 	clear();
 
 	tcsetattr(0, TCSANOW, &save);

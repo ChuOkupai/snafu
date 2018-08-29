@@ -52,7 +52,6 @@ void prints(char *s, float dt)
 				c = getchar();
 		}
 	}
-	getchar();
 	setcur(0);
 }
 
