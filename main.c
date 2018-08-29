@@ -10,11 +10,13 @@ int main(void)
 	tcsetattr(0, TCSANOW, &work);
 
 	start();
+	rdial("data/image/test", 0, CFG_TEXT_SPEED);
+	getchar();
 	rdial("data/image/test", "data/dialog/test", CFG_TEXT_SPEED);
 	getchar();
-	rdial("data/image/empty", "data/dialog/marguerite", CFG_TEXT_SPEED);
+	rdial(0, "data/dialog/marguerite", CFG_TEXT_SPEED);
 	getchar();
-	rdial("data/image/empty", "data/dialog/marguerite_actions", CFG_TEXT_SPEED);
+	rdial(0, "data/dialog/marguerite_actions", CFG_TEXT_SPEED);
 	getchar();
 
 	tcsetattr(0, TCSANOW, &save);

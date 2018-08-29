@@ -81,6 +81,8 @@ int start()
 {
 	srand(time(NULL));
 	clear();
+	w.mode = 0;
+	w.cursor = 1;
 	setcur(0);
 	return 0;
 }
@@ -117,13 +119,16 @@ int rdial(char *image, char *dialog, float dt)
 	char s[CFG_TEXT_LENGTH];
 	int i, j, c, dial, sep;
 	
-	f = fopen(image, "r");
-	if (! f)
-	{
-		printf("error\n");
-		return -1;
-	}
 	clear();
+	if (image)
+	{
+		f = fopen(image, "r");
+		if (! f)
+		{
+			printf("error\n");
+			return -1;
+		}
+	}
 	printf("┌");
 	for (i = 0; i < CFG_IMG_X; i++)
 		printf("─");
@@ -133,52 +138,66 @@ int rdial(char *image, char *dialog, float dt)
 		for (j = 0; j < CFG_IMG_X + 3; j++)
 		{
 			if ((j > 0 && j < CFG_IMG_X + 1) || j == CFG_IMG_X + 2)
-				putchar(fgetc(f));
+			{
+				if (image)
+					putchar(fgetc(f));
+				else
+				{
+					if (j == CFG_IMG_X + 2)
+						putchar('\n');
+					else
+						putchar(' ');
+				}
+			}
 			else
 				printf("│");
 		}
 	}
-	fclose(f);
+	if (image)
+		fclose(f);
 	printf("└");
 	for (i = 0; i < CFG_IMG_X; i++)
 		printf("─");
 	puts("┘");
-	f = fopen(dialog, "r");
-	if (! f)
+	if (dialog)
 	{
-		printf("error\n");
-		return -2;
-	}
-	c = fgetc(f);
-	dial = 0;
-	sep = 0;
-	while (c != EOF)
-	{
-		if (c == '$')
+		f = fopen(dialog, "r");
+		if (! f)
 		{
-			fgets(s, CFG_TEXT_LENGTH, f);
-			s[strlen(s) - 1] = '\0';
-			printf(" %s :\n\n", s);
-		}
-		else if (c == '>')
-		{
-			printf("   ");
-			fgets(s, CFG_TEXT_LENGTH, f);
-			prints(s, dt);
-			dial++;
-		}
-		else if (c == '*')
-		{
-			if (! sep && dial)
-			{
-				putchar('\n');
-				sep = 1;
-			}
-			fgets(s, CFG_TEXT_LENGTH, f);
-			printf(" * %s", s);
+			printf("error\n");
+			return -2;
 		}
 		c = fgetc(f);
+		dial = 0;
+		sep = 0;
+		while (c != EOF)
+		{
+			if (c == '$')
+			{
+				fgets(s, CFG_TEXT_LENGTH, f);
+				s[strlen(s) - 1] = '\0';
+				printf(" %s :\n\n", s);
+			}
+			else if (c == '>')
+			{
+				printf("   ");
+				fgets(s, CFG_TEXT_LENGTH, f);
+				prints(s, dt);
+				dial++;
+			}
+			else if (c == '*')
+			{
+				if (! sep && dial)
+				{
+					putchar('\n');
+					sep = 1;
+				}
+				fgets(s, CFG_TEXT_LENGTH, f);
+				printf(" * %s", s);
+			}
+			c = fgetc(f);
+		}
+		fclose(f);
 	}
-	fclose(f);
 	return 0;
 }
