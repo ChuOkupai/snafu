@@ -1,0 +1,6 @@
+Menu Principale -> plusieurs options : sauvegarde, charger, quitter, nouvelle partie...
+                 - touche Echap : affiche Menu Principale
+Menu de jeu -> Une sélection de dialogue possible , dialoque png, information sur les différents évènemlents,...
+            -> Stat du joueur(niveau, level, nom)
+            -> "Case" graphique
+Menu de quète -> pour les quètes principales et secondaires
