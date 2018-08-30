@@ -1,5 +1,26 @@
 #include <snafuENG.h>
 
+struct CFG_HUD
+{
+	int theme;
+	int x;
+	int y;
+};
+
+struct CFG_TEXT
+{
+	int		maxlength;
+	float	speed;
+};
+
+struct CFG_SNAFU
+{
+	int				cursor;
+	struct CFG_HUD	hud;
+	struct CFG_TEXT	text;
+};
+struct CFG_SNAFU cfg;
+
 void clear()
 {
 	system("clear");
@@ -7,15 +28,15 @@ void clear()
 
 void setcur(int on)
 {
-	if (! cursor && on)
+	if (! cfg.cursor && on)
 	{
 		system("setterm -cursor on");
-		cursor = 1;
+		cfg.cursor = 1;
 	}
-	else if (! on && cursor)
+	else if (! on && cfg.cursor)
 	{
 		system("setterm -cursor off");
-		cursor = 0;
+		cfg.cursor = 0;
 	}
 }
 
@@ -31,7 +52,12 @@ void setengine(int on)
 		tcsetattr(0, TCSANOW, &work);
 		srand(time(NULL));
 		clear();
-		cursor = 1;
+		cfg.cursor = 1;
+		cfg.hud.theme = 1;
+		cfg.hud.x = 80;
+		cfg.hud.y = 12;
+		cfg.text.maxlength = 78;
+		cfg.text.speed = 0.05;
 		setcur(OFF);
 	}
 	else
@@ -64,14 +90,14 @@ int kbhit(void)
 	return 0;
 }
 
-void prints(char *s, float dt)
+void prints(char *s)
 {
 	struct timespec t;
 	int resetcur;
 
-	t.tv_sec = (int)dt;
-	t.tv_nsec = 1000000000 * (dt - t.tv_sec);
-	if (! cursor)
+	t.tv_sec = (int)cfg.text.speed;
+	t.tv_nsec = 1000000000 * (cfg.text.speed - t.tv_sec);
+	if (! cfg.cursor)
 	{
 		setcur(ON);
 		resetcur = 1;
@@ -91,36 +117,10 @@ void prints(char *s, float dt)
 		setcur(OFF);
 }
 
-void hud(char *tlc, char *trc, char *llc, char *lrc, char *hl, char *vl)
-{
-	int i, j;
-	
-	printf("%s", tlc);
-	for (i = 0; i < 78; i++)
-		printf("%s", hl);
-	puts(trc);
-	for (i = 0; i < 10; i++)
-	{
-		for (j = 0; j < 81; j++)
-		{
-			if (j > 0 && j < 79)
-				putchar(' ');
-			else if (j != 80)
-				printf("%s", vl);
-			else
-				putchar('\n');
-		}
-	}
-	printf("%s", llc);
-	for (i = 0; i < 78; i++)
-		printf("%s", hl);
-	puts(lrc);
-}
-
-int rdial(char *image, char *dialog, float dt)
+int rdial(char *image, char *dialog)
 {
 	FILE *f;
-	char s[CFG_TEXT_LENGTH];
+	char s[cfg.text.maxlength];
 	int i, j, c, dial, sep;
 	
 	clear();
@@ -134,14 +134,14 @@ int rdial(char *image, char *dialog, float dt)
 		}
 	}
 	printf("┌");
-	for (i = 0; i < CFG_IMG_X; i++)
+	for (i = 0; i < cfg.hud.x - 2; i++)
 		printf("─");
 	puts("┐");
-	for (i = 0; i < CFG_IMG_Y; i++)
+	for (i = 0; i < cfg.hud.y - 2; i++)
 	{
-		for (j = 0; j < CFG_IMG_X + 3; j++)
+		for (j = 0; j < cfg.hud.x + 1; j++)
 		{
-			if ((j > 0 && j < CFG_IMG_X + 1) || j == CFG_IMG_X + 2)
+			if ((j > 0 && j < cfg.hud.x - 1) || j == cfg.hud.x)
 			{
 				if (image)
 				{
@@ -156,7 +156,7 @@ int rdial(char *image, char *dialog, float dt)
 				}
 				else
 				{
-					if (j == CFG_IMG_X + 2)
+					if (j == cfg.hud.x)
 						putchar('\n');
 					else
 						putchar(' ');
@@ -169,7 +169,7 @@ int rdial(char *image, char *dialog, float dt)
 	if (image)
 		fclose(f);
 	printf("└");
-	for (i = 0; i < CFG_IMG_X; i++)
+	for (i = 0; i < cfg.hud.x - 2; i++)
 		printf("─");
 	puts("┘");
 	if (dialog)
@@ -187,15 +187,15 @@ int rdial(char *image, char *dialog, float dt)
 		{
 			if (c == '$')
 			{
-				fgets(s, CFG_TEXT_LENGTH, f);
+				fgets(s, cfg.text.maxlength, f);
 				s[strlen(s) - 1] = '\0';
 				printf(" %s :\n\n", s);
 			}
 			else if (c == '>')
 			{
 				printf("   ");
-				fgets(s, CFG_TEXT_LENGTH, f);
-				prints(s, dt);
+				fgets(s, cfg.text.maxlength, f);
+				prints(s);
 				dial++;
 			}
 			else if (c == '*')
@@ -205,7 +205,7 @@ int rdial(char *image, char *dialog, float dt)
 					putchar('\n');
 					sep = 1;
 				}
-				fgets(s, CFG_TEXT_LENGTH, f);
+				fgets(s, cfg.text.maxlength, f);
 				printf(" * %s", s);
 			}
 			c = fgetc(f);
