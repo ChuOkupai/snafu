@@ -1,7 +1,7 @@
 SRC=snafu
 CC=gcc
 CFLAGS=-Wall -Wextra
-LDFLAGS=-I. -L. -l$(SRC)
+LDFLAGS=-I. -L. -l$(SRC)ENG
 
 all: clean build main
 
@@ -9,8 +9,8 @@ clean:
 	sudo rm -f *.o *.so *.out
 
 build:
-	$(CC) $(CFLAGS) -c -fpic $(SRC).c -I.
-	$(CC) $(CFLAGS) -shared -o lib$(SRC).so $(SRC).o
+	$(CC) $(CFLAGS) -c -fpic $(SRC)ENG.c -I.
+	$(CC) $(CFLAGS) -shared -o lib$(SRC)ENG.so $(SRC)ENG.o
 
 main:
 	$(CC) $(CFLAGS) main.c -o $(SRC).out $(LDFLAGS)
