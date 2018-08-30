@@ -9,6 +9,9 @@
 #include <termios.h>
 #include <unistd.h>
 
+#define ON	1
+#define OFF	0
+
 #define CFG_HUD			"┌", "┐", "└", "┘", "─", "│"
 #define CFG_IMG_X		78
 #define CFG_IMG_Y		10
@@ -39,6 +42,9 @@ void clear();
 /* active ou désactive le curseur */
 void setcur(int on);
 
+/* initialise snafu */
+void setengine(int on);
+
 /* détecte si une touche du clavier a été frappée */
 /** renvoie une valeur non nulle si vrai **/
 int kbhit(void);
@@ -52,9 +58,6 @@ int randi(int min, int max);
 
 /* renvoie un float aléatoire entre 0 et 1 */
 float randf();
-
-/* initialise snafu */
-int start();
 
 /* rendu de l'interface */
 /** tlc : top left corner

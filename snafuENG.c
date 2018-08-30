@@ -18,6 +18,29 @@ void setcur(int on)
 		cursor = 0;
 	}
 }
+
+void setengine(int on)
+{
+	static struct termios work, save;
+	
+	if (on)
+	{
+		tcgetattr(0, &save);
+		work = save;
+		work.c_lflag &= ~ECHO;
+		tcsetattr(0, TCSANOW, &work);
+		srand(time(NULL));
+		clear();
+		cursor = 1;
+		setcur(OFF);
+	}
+	else
+	{
+		tcsetattr(0, TCSANOW, &save);
+		setcur(ON);
+		clear();
+	}
+}
  
 int kbhit(void)
 {
@@ -50,7 +73,7 @@ void prints(char *s, float dt)
 	t.tv_nsec = 1000000000 * (dt - t.tv_sec);
 	if (! cursor)
 	{
-		setcur(1);
+		setcur(ON);
 		resetcur = 1;
 	}
 	else resetcur = 0;
@@ -64,7 +87,8 @@ void prints(char *s, float dt)
 				c = getchar();
 		}
 	}
-	if (resetcur) setcur(0);
+	if (resetcur)
+		setcur(OFF);
 }
 
 int randi(int min, int max)
@@ -75,15 +99,6 @@ int randi(int min, int max)
 float randf()
 {
 	return (float)rand() / (float)RAND_MAX;
-}
-
-int start()
-{
-	srand(time(NULL));
-	clear();
-	cursor = 1;
-	setcur(0);
-	return 0;
 }
 
 void hud(char *tlc, char *trc, char *llc, char *lrc, char *hl, char *vl)
