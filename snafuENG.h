@@ -18,23 +18,7 @@
 #define CFG_TEXT_LENGTH	80
 #define CFG_TEXT_SPEED	0.05
 
-#define MODE_MENU	0
-#define MODE_DIAL	1
-#define MODE_INV	2
-#define MODE_MAP	3
-
 int	cursor;
-
-typedef struct entity
-{
-	char	*name;
-	int		attack;
-	int		defense;
-	int		maxhp;
-	int		hp;
-	float	level;
-	float	xpmultiplier;
-}	Entity;
 
 /* nettoie l'écran */
 void clear();
@@ -52,12 +36,6 @@ int kbhit(void);
 /* affiche une chaîne de caractères avec un délai dt entre chaque caractère */
 /** le joueur peut passer l'animation en appuyant sur la touche entrée **/
 void prints(char *s, float dt);
-
-/* renvoie un int aléatoire entre min et max */
-int randi(int min, int max);
-
-/* renvoie un float aléatoire entre 0 et 1 */
-float randf();
 
 /* rendu de l'interface */
 /** tlc : top left corner

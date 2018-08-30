@@ -91,16 +91,6 @@ void prints(char *s, float dt)
 		setcur(OFF);
 }
 
-int randi(int min, int max)
-{
-	return (rand() % (max - min + 1)) + min;
-}
-
-float randf()
-{
-	return (float)rand() / (float)RAND_MAX;
-}
-
 void hud(char *tlc, char *trc, char *llc, char *lrc, char *hl, char *vl)
 {
 	int i, j;
@@ -154,7 +144,16 @@ int rdial(char *image, char *dialog, float dt)
 			if ((j > 0 && j < CFG_IMG_X + 1) || j == CFG_IMG_X + 2)
 			{
 				if (image)
-					putchar(fgetc(f));
+				{
+					c = fgetc(f);
+					if (c == EOF)
+					{
+						fclose(f);
+						image = 0;
+					}
+					else
+						putchar(c);
+				}
 				else
 				{
 					if (j == CFG_IMG_X + 2)
