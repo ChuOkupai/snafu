@@ -191,3 +191,145 @@ void prints(char *s)
 	if (resetcur)
 		setcur(OFF);
 }
+
+/*Mathis WAS HERE*/
+
+char getch()
+{
+  struct termios old_tio, new_tio;
+  unsigned char c;
+
+  tcgetattr(STDIN_FILENO,&old_tio);
+  new_tio=old_tio;
+  new_tio.c_lflag &=(~ICANON & ~ECHO);
+
+  tcsetattr(STDIN_FILENO,TCSANOW,&new_tio);
+  c = getchar();
+  tcsetattr(STDIN_FILENO,TCSANOW,&old_tio);
+  
+  return c;
+}
+
+int main_menu()
+{
+	int prechoice = -1;
+	int choice = 0;
+	int min_choice, max_choice;
+	
+	min_choice = 1; max_choice = 3;
+	
+	char c;
+	
+	while(!choice)
+	{
+		printf("====Main Menu====\n");
+		
+		if(prechoice == 1) printf("> ");
+		printf("New Game\n");
+		if(prechoice == 2) printf("> ");
+		printf("Load Game\n");
+		if(prechoice == 3) printf("> ");
+		printf("Quit\n");
+		
+		c = getch();
+		if (c == 27){getch(), c = getch();}
+		
+		if (c == 10) choice = prechoice;
+		
+		
+		if(c == 66) prechoice++;
+		if(c == 65) prechoice--;
+		
+		if(prechoice < min_choice && prechoice != -1) prechoice = max_choice ;
+		if(prechoice > max_choice && prechoice != -1) prechoice = min_choice ;
+		clear();
+		
+	}
+	printf("Choice : %d", choice);
+	return choice;
+}
+
+char **loadascii(char *path)
+{
+	FILE* f;
+	char c;
+	int i,j;
+	int x = cfg.hud.y - 2; int y = cfg.hud.x - 2;
+	/*Init*/
+	char **ascii = (char**)malloc(sizeof(char*) * y);
+	if(!ascii){printf("Error malloc ascii");exit(1);}
+	for(i = 0; i < y; i++)
+	{
+		ascii[i] = (char*)malloc(sizeof(char) * x);
+		if(!ascii[i]){printf("Error malloc ascii");exit(1);}
+	}
+	
+	for(j=0;j<y;j++)
+	{
+		for(i=0; i<x; i++)
+		{
+			ascii[j][i] = ' ';
+		}
+	}
+
+	
+	f = fopen(path, "r");
+	if (!f)
+	{
+		printf("Couldn't open %s", path);
+		return ascii;
+	}
+	
+	i = j = 0;
+	
+	c = fgetc(f);
+	
+	while(c != EOF || (j < y))
+	{
+		ascii[j][i] = c; 
+		
+		if(c == '\n'){j++; i = 0;}
+		else{ i++;}
+		
+		if(i >= x)
+		{
+			j++; i = 0;
+		}
+		c = fgetc(f);
+			
+	}
+	return ascii;
+}
+
+void rhud()
+{
+	int i, j;
+	char *tlc; char *trc; char *llc; char *lrc; char *hl; char *vl;
+	
+	if(cfg.hud.theme == 1) {tlc="┌"; trc="┐"; llc="└"; lrc="┘"; hl="─"; vl="│";}
+	else if(cfg.hud.theme == 2) {tlc="╔"; trc="╗"; llc="╚"; lrc="╝"; hl="═"; vl="║";}
+	else{tlc=" "; trc=" "; llc=" "; lrc=" "; hl=" "; vl=" ";}
+
+	
+	printf("%s", tlc);
+	for (i = 0; i < cfg.hud.x - 2; i++)
+		printf("%s", hl);
+	puts(trc);
+	for (i = 0; i < cfg.hud.y - 2; i++)
+	{
+		for (j = 0; j < cfg.hud.x + 1; j++)
+		{
+			if (j > 0 && j < cfg.hud.x - 1)
+				//printf("%c", image[i][j]);
+				printf(" ");
+			else if (j != cfg.hud.x)
+				printf("%s", vl);
+			else
+				putchar('\n');
+		}
+	}
+	printf("%s", llc);
+	for (i = 0; i < cfg.hud.x - 2; i++)
+		printf("%s", hl);
+	puts(lrc);
+}

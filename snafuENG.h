@@ -35,4 +35,11 @@ int kbhit(void);
 /** le joueur peut passer l'animation en appuyant sur la touche entrée **/
 void prints(char *s);
 
+
+/* Mathis was HERE*/
+char getch();
+int main_menu();
+char **loadascii(char *path);
+void rhud();
+
 #endif /* snafu.h  */
