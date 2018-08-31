@@ -12,11 +12,6 @@
 #define ON	1
 #define OFF	0
 
-typedef struct ASCIISURFACE
-{
-    char **character;
-}    ASCIISURFACE;
-
 /* Ecrit une message d'erreur dans le fichier log */
 void writerr(char *error);
 
