@@ -151,7 +151,7 @@ void loadcfg()
 		}
 	}
 	if (fclose(f))
-		writerr("Could not close game.cfg!");
+		writerr("Could not close data/game.cfg!");
 }
 
 void setengine(int on)
