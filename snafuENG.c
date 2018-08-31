@@ -7,6 +7,11 @@ struct CFG_HUD
 	int y;
 };
 
+struct CFG_MENU
+{
+	int maxchoice;
+};
+
 struct CFG_TEXT
 {
 	int				maxlength;
@@ -17,16 +22,17 @@ struct CFG_SNAFU
 {
 	int				cursor;
 	struct CFG_HUD	hud;
+	struct CFG_MENU	menu;
 	struct CFG_TEXT	text;
 };
 struct CFG_SNAFU cfg;
 
 void writerr(char *error)
 {
-	FILE *f = NULL;
-	time_t t = time(NULL);
+	FILE *f = 0;
+	time_t t = time(0);
 	struct tm tm = *localtime(&t);
-	
+
 	f = fopen("data/game.log", "a");
 	if (! f)
 		return;
@@ -54,6 +60,37 @@ void clear()
 	system("clear");
 }
 
+void fsleep(float s)
+{
+	struct timespec	t;
+
+	t.tv_sec = (int)s;
+	t.tv_nsec = 1000000000 * (s - (int)s);
+	nanosleep(&t, 0);
+}
+
+int kbhit()
+{
+	struct termios oldt, newt;
+	int c, oldf;
+
+	tcgetattr(STDIN_FILENO, &oldt);
+	newt = oldt;
+	newt.c_lflag &= ~(ICANON | ECHO);
+	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+	oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+	fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+	c = getchar();
+	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+	fcntl(STDIN_FILENO, F_SETFL, oldf);
+	if (c != EOF)
+	{
+		ungetc(c, stdin);
+		return 1;
+	}
+	return 0;
+}
+
 void setcur(int on)
 {
 	if (! cfg.cursor && on)
@@ -70,15 +107,15 @@ void setcur(int on)
 
 void loadcfg()
 {
-	FILE *f = NULL;
+	FILE *f = 0;
 	char buf[16];
 	float s;
 	int theme;
-	
+
 	f = fopen("data/game.cfg", "r");
 	if (! f)
 	{
-		writerr("Could not open game.cfg!");
+		writerr("Could not open data/game.cfg!");
 		return;
 	}
 	while (fgets(buf, 16, f))
@@ -120,7 +157,7 @@ void loadcfg()
 void setengine(int on)
 {
 	static struct termios work, save;
-	
+
 	if (on)
 	{
 		tcgetattr(0, &save);
@@ -132,6 +169,7 @@ void setengine(int on)
 		cfg.hud.theme = 0;
 		cfg.hud.x = 80;
 		cfg.hud.y = 12;
+		cfg.menu.maxchoice = 3;
 		cfg.text.maxlength = 78;
 		cfg.text.speed.tv_sec = 0;
 		cfg.text.speed.tv_nsec = 50000000;
@@ -142,30 +180,60 @@ void setengine(int on)
 	{
 		tcsetattr(0, TCSANOW, &save);
 		setcur(ON);
-		clear();
 	}
 }
- 
-int kbhit(void)
-{
-	struct termios oldt, newt;
-	int c, oldf;
 
-	tcgetattr(STDIN_FILENO, &oldt);
-	newt = oldt;
-	newt.c_lflag &= ~(ICANON | ECHO);
-	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-	oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-	fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-	c = getchar();
-	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-	fcntl(STDIN_FILENO, F_SETFL, oldf);
-	if (c != EOF)
+char** loadascii(char *path)
+{
+	FILE* f;
+	char c;
+	int i,j;
+	int x = cfg.hud.y - 2; int y = cfg.hud.x - 2;
+	/*Init*/
+	char **ascii = (char**)malloc(sizeof(char*) * y);
+	if(!ascii){printf("Error malloc ascii");exit(1);}
+	for(i = 0; i < y; i++)
 	{
-		ungetc(c, stdin);
-		return 1;
+		ascii[i] = (char*)malloc(sizeof(char) * x);
+		if(!ascii[i]){printf("Error malloc ascii");exit(1);}
 	}
-	return 0;
+
+	for(j=0;j<y;j++)
+	{
+		for(i=0; i<x; i++)
+		{
+			ascii[j][i] = ' ';
+		}
+	}
+	return ascii;
+
+
+	f = fopen(path, "r");
+	if (!f)
+	{
+		printf("Couldn't open %s", path);
+		return ascii;
+	}
+
+	i = j = 0;
+
+	c = fgetc(f);
+
+	while(c != EOF || (j < y))
+	{
+		ascii[j][i] = c;
+
+		if(c == '\n'){j++; i = 0;}
+		else{ i++;}
+
+		if(i >= x)
+		{
+			j++; i = 0;
+		}
+		c = fgetc(f);
+
+	}
+	return ascii;
 }
 
 void prints(char *s)
@@ -183,7 +251,7 @@ void prints(char *s)
 		putchar(*s);
 		if (c != '\n')
 		{
-			nanosleep(&cfg.text.speed, NULL);
+			nanosleep(&cfg.text.speed, 0);
 			if (kbhit())
 				c = getchar();
 		}
@@ -192,125 +260,62 @@ void prints(char *s)
 		setcur(OFF);
 }
 
-/*Mathis WAS HERE*/
-
-char getch()
+int mainmenu()
 {
-  struct termios old_tio, new_tio;
-  unsigned char c;
+	int c = 0, selection = 0;
 
-  tcgetattr(STDIN_FILENO,&old_tio);
-  new_tio=old_tio;
-  new_tio.c_lflag &=(~ICANON & ~ECHO);
-
-  tcsetattr(STDIN_FILENO,TCSANOW,&new_tio);
-  c = getchar();
-  tcsetattr(STDIN_FILENO,TCSANOW,&old_tio);
-  
-  return c;
-}
-
-int main_menu()
-{
-	int prechoice = -1;
-	int choice = 0;
-	int min_choice, max_choice;
-	
-	min_choice = 1; max_choice = 3;
-	
-	char c;
-	
-	while(!choice)
+	while (! selection || c != '\n')
 	{
-		printf("====Main Menu====\n");
-		
-		if(prechoice == 1) printf("> ");
-		printf("New Game\n");
-		if(prechoice == 2) printf("> ");
-		printf("Load Game\n");
-		if(prechoice == 3) printf("> ");
-		printf("Quit\n");
-		
-		c = getch();
-		if (c == 27){getch(), c = getch();}
-		
-		if (c == 10) choice = prechoice;
-		
-		
-		if(c == 66) prechoice++;
-		if(c == 65) prechoice--;
-		
-		if(prechoice < min_choice && prechoice != -1) prechoice = max_choice ;
-		if(prechoice > max_choice && prechoice != -1) prechoice = min_choice ;
 		clear();
-		
-	}
-	printf("Choice : %d", choice);
-	return choice;
-}
-
-char **loadascii(char *path)
-{
-	FILE* f;
-	char c;
-	int i,j;
-	int x = cfg.hud.y - 2; int y = cfg.hud.x - 2;
-	/*Init*/
-	char **ascii = (char**)malloc(sizeof(char*) * y);
-	if(!ascii){printf("Error malloc ascii");exit(1);}
-	for(i = 0; i < y; i++)
-	{
-		ascii[i] = (char*)malloc(sizeof(char) * x);
-		if(!ascii[i]){printf("Error malloc ascii");exit(1);}
-	}
-	
-	for(j=0;j<y;j++)
-	{
-		for(i=0; i<x; i++)
+		printf("    ┌───────────┐\n    │ ");
+		printf(BOLDWHITE "MAIN MENU │\n");
+		printf("    └───────────┘\n\n");
+		if (selection == 1)
+			putchar('>');
+		printf(" New Game\n");
+		if (selection == 2)
+			putchar('>');
+		printf(" Load Game\n");
+		if (selection == 3)
+			putchar('>');
+		printf(" Quit\n" RESET);
+		while (! kbhit())
+			fsleep(0.07);
+		c = getchar();
+		if (c == 27)
 		{
-			ascii[j][i] = ' ';
+			c = getchar();
+			if (c == 91)
+			{
+				c = getchar();
+				if (c == 65)
+				{
+					selection--;
+					if (selection < 1)
+						selection = cfg.menu.maxchoice;
+				}
+				else if (c == 66)
+				{
+					selection++;
+					if (selection > cfg.menu.maxchoice)
+						selection = 1;
+				}
+			}
 		}
 	}
-
-	
-	f = fopen(path, "r");
-	if (!f)
-	{
-		printf("Couldn't open %s", path);
-		return ascii;
-	}
-	
-	i = j = 0;
-	
-	c = fgetc(f);
-	
-	while(c != EOF || (j < y))
-	{
-		ascii[j][i] = c; 
-		
-		if(c == '\n'){j++; i = 0;}
-		else{ i++;}
-		
-		if(i >= x)
-		{
-			j++; i = 0;
-		}
-		c = fgetc(f);
-			
-	}
-	return ascii;
+	return selection;
 }
 
-void rhud()
+void rhud(char **image)
 {
 	int i, j;
 	char *tlc; char *trc; char *llc; char *lrc; char *hl; char *vl;
-	
+
 	if(cfg.hud.theme == 1) {tlc="┌"; trc="┐"; llc="└"; lrc="┘"; hl="─"; vl="│";}
 	else if(cfg.hud.theme == 2) {tlc="╔"; trc="╗"; llc="╚"; lrc="╝"; hl="═"; vl="║";}
 	else{tlc=" "; trc=" "; llc=" "; lrc=" "; hl=" "; vl=" ";}
 
-	
+
 	printf("%s", tlc);
 	for (i = 0; i < cfg.hud.x - 2; i++)
 		printf("%s", hl);
@@ -320,8 +325,10 @@ void rhud()
 		for (j = 0; j < cfg.hud.x + 1; j++)
 		{
 			if (j > 0 && j < cfg.hud.x - 1)
-				//printf("%c", image[i][j]);
+			{
+				printf("%c", image[i][j]);
 				printf(" ");
+			}
 			else if (j != cfg.hud.x)
 				printf("%s", vl);
 			else

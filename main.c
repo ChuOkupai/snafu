@@ -3,7 +3,7 @@
 int main(void)
 {
 	setengine(ON);
-	getchar();
+	printf("mainmenu() return value = %d\n", mainmenu());
 	setengine(OFF);
 	return 0;
 }
