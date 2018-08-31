@@ -12,11 +12,22 @@
 #define ON	1
 #define OFF	0
 
+typedef struct ASCIISURFACE
+{
+    char **character;
+}    ASCIISURFACE;
+
+/* Ecrit une message d'erreur dans le fichier log */
+void writerr(char *error);
+
 /* nettoie l'écran */
 void clear();
 
 /* active ou désactive le curseur */
 void setcur(int on);
+
+/* charge le fichier de configuration */
+void loadcfg();
 
 /* initialise snafu */
 void setengine(int on);
@@ -28,8 +39,5 @@ int kbhit(void);
 /* affiche une chaîne de caractères avec un délai entre chaque caractère */
 /** le joueur peut passer l'animation en appuyant sur la touche entrée **/
 void prints(char *s);
-
-/* affiche une image et un dialogue */
-int rdial(char *image, char *dialog);
 
 #endif /* snafu.h  */

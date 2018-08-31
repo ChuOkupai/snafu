@@ -9,8 +9,8 @@ struct CFG_HUD
 
 struct CFG_TEXT
 {
-	int		maxlength;
-	float	speed;
+	int				maxlength;
+	struct timespec	speed;
 };
 
 struct CFG_SNAFU
@@ -20,6 +20,34 @@ struct CFG_SNAFU
 	struct CFG_TEXT	text;
 };
 struct CFG_SNAFU cfg;
+
+void writerr(char *error)
+{
+	FILE *f = NULL;
+	time_t t = time(NULL);
+	struct tm tm = *localtime(&t);
+	
+	f = fopen("data/game.log", "a");
+	if (! f)
+		return;
+	fprintf(f, "%d-", tm.tm_year + 1900);
+	if (tm.tm_mon + 1 < 10)
+		fputc('0', f);
+	fprintf(f, "%d-", tm.tm_mon + 1);
+	if (tm.tm_mday < 10)
+		fputc('0', f);
+	fprintf(f, "%d ", tm.tm_mday);
+	if (tm.tm_hour < 10)
+		fputc('0', f);
+	fprintf(f, "%d:", tm.tm_hour);
+	if (tm.tm_min < 10)
+		fputc('0', f);
+	fprintf(f, "%d:", tm.tm_min);
+	if (tm.tm_sec < 10)
+		fputc('0', f);
+	fprintf(f, "%d : ERROR - %s\n", tm.tm_sec, error);
+	fclose(f);
+}
 
 void clear()
 {
@@ -40,6 +68,55 @@ void setcur(int on)
 	}
 }
 
+void loadcfg()
+{
+	FILE *f = NULL;
+	char buf[16];
+	float s;
+	int theme;
+	
+	f = fopen("data/game.cfg", "r");
+	if (! f)
+	{
+		writerr("Could not open game.cfg!");
+		return;
+	}
+	while (fgets(buf, 16, f))
+	{
+		if (strstr(buf, "[HUD]"))
+		{
+			while (fgets(buf, 16, f))
+			{
+				if (strstr(buf, "theme="))
+				{
+					sscanf(buf, "theme=%d", &theme);
+					if (theme >= 0 && theme <= 2)
+						cfg.hud.theme = theme;
+					break;
+				}
+			}
+		}
+		else if (strstr(buf, "[TEXT]"))
+		{
+			while (fgets(buf, 16, f))
+			{
+				if (strstr(buf, "speed="))
+				{
+					sscanf(buf, "speed=%f", &s);
+					if ((int)s >= 0 && (int)s <= 2)
+					{
+						cfg.text.speed.tv_sec = (int)s;
+						cfg.text.speed.tv_nsec = 1000000000 * (s - (int)s);
+					}
+					break;
+				}
+			}
+		}
+	}
+	if (fclose(f))
+		writerr("Could not close game.cfg!");
+}
+
 void setengine(int on)
 {
 	static struct termios work, save;
@@ -50,14 +127,15 @@ void setengine(int on)
 		work = save;
 		work.c_lflag &= ~ECHO;
 		tcsetattr(0, TCSANOW, &work);
-		srand(time(NULL));
 		clear();
 		cfg.cursor = 1;
-		cfg.hud.theme = 1;
+		cfg.hud.theme = 0;
 		cfg.hud.x = 80;
 		cfg.hud.y = 12;
 		cfg.text.maxlength = 78;
-		cfg.text.speed = 0.05;
+		cfg.text.speed.tv_sec = 0;
+		cfg.text.speed.tv_nsec = 50000000;
+		loadcfg();
 		setcur(OFF);
 	}
 	else
@@ -92,11 +170,8 @@ int kbhit(void)
 
 void prints(char *s)
 {
-	struct timespec t;
 	int resetcur;
 
-	t.tv_sec = (int)cfg.text.speed;
-	t.tv_nsec = 1000000000 * (cfg.text.speed - t.tv_sec);
 	if (! cfg.cursor)
 	{
 		setcur(ON);
@@ -108,109 +183,11 @@ void prints(char *s)
 		putchar(*s);
 		if (c != '\n')
 		{
-			nanosleep(&t, NULL);
+			nanosleep(&cfg.text.speed, NULL);
 			if (kbhit())
 				c = getchar();
 		}
 	}
 	if (resetcur)
 		setcur(OFF);
-}
-
-int rdial(char *image, char *dialog)
-{
-	FILE *f;
-	char s[cfg.text.maxlength];
-	int i, j, c, dial, sep;
-	
-	clear();
-	if (image)
-	{
-		f = fopen(image, "r");
-		if (! f)
-		{
-			printf("error\n");
-			return -1;
-		}
-	}
-	printf("┌");
-	for (i = 0; i < cfg.hud.x - 2; i++)
-		printf("─");
-	puts("┐");
-	for (i = 0; i < cfg.hud.y - 2; i++)
-	{
-		for (j = 0; j < cfg.hud.x + 1; j++)
-		{
-			if ((j > 0 && j < cfg.hud.x - 1) || j == cfg.hud.x)
-			{
-				if (image)
-				{
-					c = fgetc(f);
-					if (c == EOF)
-					{
-						fclose(f);
-						image = 0;
-					}
-					else
-						putchar(c);
-				}
-				else
-				{
-					if (j == cfg.hud.x)
-						putchar('\n');
-					else
-						putchar(' ');
-				}
-			}
-			else
-				printf("│");
-		}
-	}
-	if (image)
-		fclose(f);
-	printf("└");
-	for (i = 0; i < cfg.hud.x - 2; i++)
-		printf("─");
-	puts("┘");
-	if (dialog)
-	{
-		f = fopen(dialog, "r");
-		if (! f)
-		{
-			printf("error\n");
-			return -2;
-		}
-		c = fgetc(f);
-		dial = 0;
-		sep = 0;
-		while (c != EOF)
-		{
-			if (c == '$')
-			{
-				fgets(s, cfg.text.maxlength, f);
-				s[strlen(s) - 1] = '\0';
-				printf(" %s :\n\n", s);
-			}
-			else if (c == '>')
-			{
-				printf("   ");
-				fgets(s, cfg.text.maxlength, f);
-				prints(s);
-				dial++;
-			}
-			else if (c == '*')
-			{
-				if (! sep && dial)
-				{
-					putchar('\n');
-					sep = 1;
-				}
-				fgets(s, cfg.text.maxlength, f);
-				printf(" * %s", s);
-			}
-			c = fgetc(f);
-		}
-		fclose(f);
-	}
-	return 0;
 }
