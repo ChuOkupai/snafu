@@ -27,15 +27,14 @@ struct CFG_SNAFU
 };
 struct CFG_SNAFU cfg;
 
-void writerr(char *error)
+/* écrit la date et l'heure courante dans le fichier log */
+void wlogtime(FILE *f)
 {
-	FILE *f = 0;
+	if (! f)
+		return;
 	time_t t = time(0);
 	struct tm tm = *localtime(&t);
 
-	f = fopen("data/game.log", "a");
-	if (! f)
-		return;
 	fprintf(f, "%d-", tm.tm_year + 1900);
 	if (tm.tm_mon + 1 < 10)
 		fputc('0', f);
@@ -51,7 +50,46 @@ void writerr(char *error)
 	fprintf(f, "%d:", tm.tm_min);
 	if (tm.tm_sec < 10)
 		fputc('0', f);
-	fprintf(f, "%d : ERROR - %s\n", tm.tm_sec, error);
+	fprintf(f, "%d : ", tm.tm_sec);
+}
+
+void werror(int error, char *data, char *function)
+{
+	FILE *f = 0;
+
+	f = fopen("data/game.log", "a");
+	if (! f)
+		return;
+	wlogtime(f);
+	fprintf(f, "ERROR - ");
+	if (error == ERROR_OPEN || error == ERROR_CLOSE)
+	{
+		fprintf(f, "Could not ");
+		fprintf(f, (error == ERROR_OPEN) ? "open" : "close");	
+		fprintf(f, " file %s!", data);
+	}
+	else if (error == ERROR_MEMORY)
+		fprintf(f, "Could not allocate memory!");
+	else
+		fprintf(f, "No description.");
+	fprintf(f, " (%s)\n", function);
+	fclose(f);
+}
+
+void wwarning(int warning, char *data, char *function)
+{
+	FILE *f = 0;
+
+	f = fopen("data/game.log", "a");
+	if (! f)
+		return;
+	wlogtime(f);
+	fprintf(f, "WARNING - ");
+	if (warning == WARNING_CFG)
+		fprintf(f, "Forbidden value set to %s!", data);
+	else
+		fprintf(f, "No description.");
+	fprintf(f, " (%s)\n", function);
 	fclose(f);
 }
 
@@ -65,8 +103,13 @@ void fsleep(float s)
 	struct timespec	t;
 
 	t.tv_sec = (int)s;
-	t.tv_nsec = 1000000000 * (s - (int)s);
+	t.tv_nsec = 1000000000 * (s - t.tv_sec);
 	nanosleep(&t, 0);
+}
+
+int randi(int min, int max)
+{
+	return (rand() % (max - min + 1)) + min;
 }
 
 int kbhit()
@@ -112,10 +155,18 @@ void loadcfg()
 	float s;
 	int theme;
 
+	cfg.cursor = 1;
+	cfg.hud.theme = 1;
+	cfg.hud.x = 80;
+	cfg.hud.y = 12;
+	cfg.menu.maxchoice = 3;
+	cfg.text.maxlength = 78;
+	cfg.text.speed.tv_sec = 0;
+	cfg.text.speed.tv_nsec = 50000000;
 	f = fopen("data/game.cfg", "r");
 	if (! f)
 	{
-		writerr("Could not open data/game.cfg!");
+		werror(ERROR_OPEN, "data/game.cfg", "loadcfg");
 		return;
 	}
 	while (fgets(buf, 16, f))
@@ -129,6 +180,8 @@ void loadcfg()
 					sscanf(buf, "theme=%d", &theme);
 					if (theme >= 0 && theme <= 2)
 						cfg.hud.theme = theme;
+					else
+						wwarning(WARNING_CFG, "HUD theme", "loadcfg");
 					break;
 				}
 			}
@@ -145,94 +198,105 @@ void loadcfg()
 						cfg.text.speed.tv_sec = (int)s;
 						cfg.text.speed.tv_nsec = 1000000000 * (s - (int)s);
 					}
+					else
+						wwarning(WARNING_CFG, "text speed", "loadcfg");
 					break;
 				}
 			}
 		}
 	}
 	if (fclose(f))
-		writerr("Could not close data/game.cfg!");
+		werror(ERROR_CLOSE, "data/game.cfg", "loadcfg");
 }
 
 void setengine(int on)
 {
-	static struct termios work, save;
+	static struct termios current, save;
 
 	if (on)
 	{
 		tcgetattr(0, &save);
-		work = save;
-		work.c_lflag &= ~ECHO;
-		tcsetattr(0, TCSANOW, &work);
+		current = save;
+		current.c_lflag &= ~ECHO;
+		tcsetattr(0, TCSANOW, &current);
 		clear();
-		cfg.cursor = 1;
-		cfg.hud.theme = 0;
-		cfg.hud.x = 80;
-		cfg.hud.y = 12;
-		cfg.menu.maxchoice = 3;
-		cfg.text.maxlength = 78;
-		cfg.text.speed.tv_sec = 0;
-		cfg.text.speed.tv_nsec = 50000000;
 		loadcfg();
 		setcur(OFF);
+		srand(time(0));
 	}
 	else
 	{
 		tcsetattr(0, TCSANOW, &save);
 		setcur(ON);
+		clear();
 	}
 }
 
 char** loadascii(char *path)
 {
-	FILE* f;
-	char c;
-	int i,j;
-	int x = cfg.hud.y - 2; int y = cfg.hud.x - 2;
-	/*Init*/
-	char **ascii = (char**)malloc(sizeof(char*) * y);
-	if(!ascii){printf("Error malloc ascii");exit(1);}
-	for(i = 0; i < y; i++)
+	FILE *f = 0;
+	int c, i, j, x = cfg.hud.x - 2, y = cfg.hud.y - 2;
+	char **ascii;
+	
+	ascii = (char**)malloc(sizeof(char*) * y);
+	if (! ascii)
 	{
-		ascii[i] = (char*)malloc(sizeof(char) * x);
-		if(!ascii[i]){printf("Error malloc ascii");exit(1);}
+		werror(ERROR_MEMORY, 0, "loadascii");
+		return 0;
 	}
-
-	for(j=0;j<y;j++)
+	for (i = 0; i < y; i++)
 	{
-		for(i=0; i<x; i++)
+		ascii[i] = malloc(x);
+		if (! ascii[i])
 		{
-			ascii[j][i] = ' ';
+			werror(ERROR_MEMORY, 0, "loadascii");
+			free(ascii);
+			return 0;
 		}
 	}
-	return ascii;
-
-
-	f = fopen(path, "r");
-	if (!f)
+	if (path)
 	{
-		printf("Couldn't open %s", path);
-		return ascii;
+		f = fopen(path, "r");
+		if (! f)
+			werror(ERROR_OPEN, path, "loadascii");
 	}
-
-	i = j = 0;
-
-	c = fgetc(f);
-
-	while(c != EOF || (j < y))
+	for (i = 0; i < y; i++)
 	{
-		ascii[j][i] = c;
-
-		if(c == '\n'){j++; i = 0;}
-		else{ i++;}
-
-		if(i >= x)
+		for (j = 0; j < x; j++)
 		{
-			j++; i = 0;
+			if (f)
+			{
+				c = fgetc(f);
+				if (c >= ' ' && c < '~')
+					ascii[i][j] = c;
+				else
+				{
+					ascii[i][j] = ' ';
+					if (c == '\n')
+					{
+						for (j++; j < x; j++)
+							ascii[i][j] = ' ';
+						c = 0;
+					}
+					else if (c == EOF)
+					{
+						if (fclose(f))
+							werror(ERROR_CLOSE, path, "loadascii");
+						f = 0;
+					}
+					else
+						c = ' ';
+				}
+			}
+			else
+				ascii[i][j] = ' ';
 		}
-		c = fgetc(f);
-
+		if (c && f)
+			fgetc(f);
 	}
+	if (f)
+		if (fclose(f))
+			werror(ERROR_CLOSE, path, "loadascii");
 	return ascii;
 }
 
@@ -308,13 +372,23 @@ int mainmenu()
 
 void rhud(char **image)
 {
+	if (cfg.hud.x < 2 || cfg.hud.y < 2)
+		return;
 	int i, j;
-	char *tlc; char *trc; char *llc; char *lrc; char *hl; char *vl;
+	char *tlc, *trc, *llc, *lrc, *hl, *vl;
 
-	if(cfg.hud.theme == 1) {tlc="┌"; trc="┐"; llc="└"; lrc="┘"; hl="─"; vl="│";}
-	else if(cfg.hud.theme == 2) {tlc="╔"; trc="╗"; llc="╚"; lrc="╝"; hl="═"; vl="║";}
-	else{tlc=" "; trc=" "; llc=" "; lrc=" "; hl=" "; vl=" ";}
-
+	if (cfg.hud.theme == 1)
+	{
+		tlc="┌"; trc="┐"; llc="└"; lrc="┘"; hl="─"; vl="│";
+	}
+	else if (cfg.hud.theme == 2)
+	{
+		tlc="╔"; trc="╗"; llc="╚"; lrc="╝"; hl="═"; vl="║";
+	}
+	else
+	{
+		tlc=" "; trc=" "; llc=" "; lrc=" "; hl=" "; vl=" ";
+	}
 
 	printf("%s", tlc);
 	for (i = 0; i < cfg.hud.x - 2; i++)
@@ -324,10 +398,12 @@ void rhud(char **image)
 	{
 		for (j = 0; j < cfg.hud.x + 1; j++)
 		{
-			if (j > 0 && j < cfg.hud.x - 1)
+			if (j && j < cfg.hud.x - 1)
 			{
-				printf("%c", image[i][j]);
-				printf(" ");
+				if (image)
+					printf("%c", image[i][j - 1]);
+				else
+					putchar(' ');
 			}
 			else if (j != cfg.hud.x)
 				printf("%s", vl);
@@ -339,4 +415,50 @@ void rhud(char **image)
 	for (i = 0; i < cfg.hud.x - 2; i++)
 		printf("%s", hl);
 	puts(lrc);
+}
+
+void snafufx()
+{
+	if (cfg.hud.x - 9 < 0 || cfg.hud.y - 5 < 0)
+		return;
+	char **image = loadascii(0);
+	int c, keep = 1, x, y;
+	
+	x = randi(0, cfg.hud.x - 7);
+	y = randi(0, cfg.hud.y - 3);
+	while (keep)
+	{
+		image[y][x] = 'S';
+		image[y][x + 1] = 'N';
+		image[y][x + 2] = 'A';
+		image[y][x + 3] = 'F';
+		image[y][x + 4] = 'U';
+		clear();
+		rhud(image);
+		if (kbhit())
+		{
+			c = getchar();
+			if (c == 10 || c == 27 || c == ' ')
+				keep = 0;
+		}
+		else
+		{
+			image[y][x] = ' ';
+			image[y][x + 1] = ' ';
+			image[y][x + 2] = ' ';
+			image[y][x + 3] = ' ';
+			image[y][x + 4] = ' ';
+			x += randi(-1, 1);
+			if (x < 0)
+				x = 0;
+			else if (x > cfg.hud.x - 7)
+				x = cfg.hud.x - 7;
+			y += randi(-1, 1);
+			if (y < 0)
+				y = 0;
+			else if (y > cfg.hud.y - 3)
+				y = cfg.hud.y - 3;
+			fsleep(0.2);
+		}
+	}
 }

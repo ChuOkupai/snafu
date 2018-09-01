@@ -31,13 +31,23 @@
 #define BOLDWHITE	"\033[1m\033[37m"
 
 /* écrit une message d'erreur dans le fichier log */
-void writerr(char *error);
+#define ERROR_OPEN		-101
+#define ERROR_CLOSE		-102
+#define ERROR_MEMORY	-103
+void werror(int error, char *data, char *function);
+
+/* écrit une message d'avertissement dans le fichier log */
+#define WARNING_CFG	-201
+void wwarning(int warning, char *data, char *function);
 
 /* nettoie l'écran */
 void clear();
 
 /* attend un nombre de secondes s */
 void fsleep(float s);
+
+/* renvoie un int aléatoire entre min et max */
+int randi(int min, int max);
 
 /* détecte si une touche du clavier a été frappée */
 /** renvoie une valeur non nulle si vrai **/
@@ -64,5 +74,9 @@ int mainmenu();
 
 /* affiche l'interface avec une image ascii personnalisée */
 void rhud(char **image);
+
+/* affiche SNAFU animé avec un déplacement aléatoire */
+/** pour arrêter l'animation, appuyez sur échap, entrée ou espace **/
+void snafufx();
 
 #endif /* snafu.h  */

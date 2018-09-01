@@ -3,7 +3,9 @@
 int main(void)
 {
 	setengine(ON);
-	printf("mainmenu() return value = %d\n", mainmenu());
+	rhud(loadascii("data/image/short"));
+	getchar();
+	snafufx();
 	setengine(OFF);
 	return 0;
 }
