@@ -9,8 +9,9 @@
 #include <termios.h>
 #include <unistd.h>
 
-#define ON	1
-#define OFF	0
+typedef unsigned char bool;
+#define false	0
+#define true	1
 
 #define RESET		"\033[0m"
 #define BLACK		"\033[30m"
@@ -31,14 +32,25 @@
 #define BOLDWHITE	"\033[1m\033[37m"
 
 /* écrit une message d'erreur dans le fichier log */
-#define ERROR_OPEN		-101
-#define ERROR_CLOSE		-102
-#define ERROR_MEMORY	-103
+#define ERROR_NODESC	-100
+#define ERROR_ENGINE	-101
+#define ERROR_OPEN		-102
+#define ERROR_CLOSE		-103
+#define ERROR_MEMORY	-104
+#define ERROR_SYSTEM	-105
 void werror(int error, char *data, char *function);
 
 /* écrit une message d'avertissement dans le fichier log */
-#define WARNING_CFG	-201
+#define WARNING_NODESC	-200
+#define WARNING_CFG		-201
+#define WARNING_EXIT	-202
 void wwarning(int warning, char *data, char *function);
+
+/* écrit l'état des variables sur le fichier de débogage */
+void wdebug();
+
+/* force la fermeture du programme */
+void fexit();
 
 /* nettoie l'écran */
 void clear();
@@ -54,13 +66,16 @@ int randi(int min, int max);
 int kbhit();
 
 /* active ou désactive le curseur */
-void setcur(int on);
+void setcur(bool on);
 
 /* charge le fichier de configuration */
 void loadcfg();
 
+/* enregiste le fichier de configuration */
+void savecfg();
+
 /* initialise snafu */
-void setengine(int on);
+void setengine(bool on);
 
 /* charge une image ascii personnalisée */
 char** loadascii(char *path);

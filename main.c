@@ -2,10 +2,10 @@
 
 int main(void)
 {
-	setengine(ON);
+	setengine(true);
 	rhud(loadascii("data/image/short"));
 	getchar();
 	snafufx();
-	setengine(OFF);
+	setengine(false);
 	return 0;
 }
