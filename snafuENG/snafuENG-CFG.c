@@ -1,16 +1,35 @@
 #include <snafuENG.h>
 
+#define CFG_FILE_ELEMENTS	6
+#define CFG_TOTAL_ELEMENTS	CFG_FILE_ELEMENTS + 3
+
+typedef struct CFG_RESOLUTION
+{
+	int width;
+	int height;
+}	CFG_RESOLUTION;
+
+typedef struct CFG_DISPLAY
+{
+	CFG_RESOLUTION resolution;
+}	CFG_DISPLAY;
+
 typedef struct CFG_HUD
 {
+	int color;
 	int theme;
-	int x;
-	int y;
 }	CFG_HUD;
 
 typedef struct CFG_MENU
 {
 	int buttons;
 }	CFG_MENU;
+
+typedef struct CFG_SYSTEM
+{
+	bool cursor;
+	bool engine;
+}	CFG_SYSTEM;
 
 typedef struct CFG_TEXT
 {
@@ -19,56 +38,108 @@ typedef struct CFG_TEXT
 
 typedef struct CFG_SNAFU
 {
-	bool		cursor;
-	bool		engine;
+	CFG_DISPLAY	display;
 	CFG_HUD		hud;
 	CFG_MENU	menu;
+	CFG_SYSTEM	system;
 	CFG_TEXT	text;
 }	CFG_SNAFU;
 CFG_SNAFU cfg;
 
-void loadcfg()
+void wcfg()
 {
 	FILE *f = 0;
-	char buf[16];
-	float s;
-	int theme;
-
-	cfg.cursor = 1;
-	cfg.hud.theme = 1;
-	cfg.hud.x = 80;
-	cfg.hud.y = 12;
-	cfg.menu.buttons = 3;
-	cfg.text.speed.tv_sec = 0;
-	cfg.text.speed.tv_nsec = 50000000;
-	f = fopen("data/game.cfg", "r");
+	
+	f = fopen(PATH_CFG, "w");
 	if (! f)
 	{
-		werror(ERROR_OPEN, "data/game.cfg", "loadcfg");
+		werror(ERROR_OPEN, PATH_CFG, __func__);
 		return;
 	}
-	while (fgets(buf, 16, f))
+	fprintf(f, "[DISPLAY]\n");
+	fprintf(f, "resolution=%dx%d\n\n", cfg.display.resolution.width, cfg.display.resolution.height);
+	fprintf(f, "[HUD]\n");
+	fprintf(f, "color=%d\n", cfg.hud.color);
+	fprintf(f, "theme=%d\n\n", cfg.hud.theme);
+	fprintf(f, "[TEXT]\n");
+	fprintf(f, "speed=%f\n", cfg.text.speed.tv_sec + (float)cfg.text.speed.tv_nsec / 100000000);
+	if (fclose(f))
+		werror(ERROR_CLOSE, PATH_CFG, __func__);
+}
+
+void rcfg()
+{
+	FILE *f = 0;
+	char buf[18];
+	float s;
+	int hud = -1, display = -1, text = -1, x, y;
+
+	f = fopen(PATH_CFG, "r");
+	if (! f)
 	{
-		if (strstr(buf, "[HUD]"))
+		werror(ERROR_OPEN, PATH_CFG, __func__);
+		return;
+	}
+	while (fgets(buf, 18, f))
+	{
+		if (display < 0 && strstr(buf, "[DISPLAY]"))
+			display++;
+		else if (hud < 0 && strstr(buf, "[HUD]"))
+			hud++;
+		else if (text < 0 && strstr(buf, "[TEXT]"))
+			text++;
+		if (hud < 0 && display < 0 && text < 0)
+			continue;
+		while (fgets(buf, 18, f))
 		{
-			while (fgets(buf, 16, f))
+			if (display < 2)
 			{
-				if (strstr(buf, "theme="))
+				if (strstr(buf, "resolution"))
 				{
-					sscanf(buf, "theme=%d", &theme);
-					if (theme >= 0 && theme <= 2)
-						cfg.hud.theme = theme;
+					sscanf(buf, "resolution=%dx%d", &x, &y);
+					if ((x == 80 && y == 24) ||
+					(x == 100 && y == 30) ||
+					(x == 120 && y == 36) ||
+					(x == 140 && y == 42) ||
+					(x == 160 && y == 48))
+					{
+						cfg.display.resolution.width = x;
+						cfg.display.resolution.height = y;
+					}
 					else
-						wwarning(WARNING_CFG, "HUD theme", "loadcfg");
+						wwarning(WARNING_CFG, "resolution", __func__);
+					display += 2;
 					break;
 				}
 			}
-		}
-		else if (strstr(buf, "[TEXT]"))
-		{
-			while (fgets(buf, 16, f))
+			if (hud < 2)
 			{
-				if (strstr(buf, "speed="))
+				if (strstr(buf, "color"))
+				{
+					sscanf(buf, "color=%d", &x);
+					if (! x || (x >= 30 && x <= 37))
+						cfg.hud.color = x;
+					else
+						wwarning(WARNING_CFG, "HUD color", __func__);
+					hud++;
+					if (hud == 2)
+						break;
+				}
+				if (strstr(buf, "theme"))
+				{
+					sscanf(buf, "theme=%d", &x);
+					if (x >= 0 && x <= 2)
+						cfg.hud.theme = x;
+					else
+						wwarning(WARNING_CFG, "HUD theme", __func__);
+					hud++;
+					if (hud == 2)
+						break;
+				}
+			}
+			if (text < 1)
+			{
+				if (strstr(buf, "speed"))
 				{
 					sscanf(buf, "speed=%f", &s);
 					if ((int)s >= 0 && (int)s <= 2)
@@ -77,30 +148,24 @@ void loadcfg()
 						cfg.text.speed.tv_nsec = 1000000000 * (s - (int)s);
 					}
 					else
-						wwarning(WARNING_CFG, "text speed", "loadcfg");
+						wwarning(WARNING_CFG, "text speed", __func__);
+					text += 2;	
 					break;
 				}
 			}
 		}
 	}
 	if (fclose(f))
-		werror(ERROR_CLOSE, "data/game.cfg", "loadcfg");
+		werror(ERROR_CLOSE, PATH_CFG, __func__);
 }
 
-void savecfg()
+void setdefcfg()
 {
-	FILE *f = 0;
-	
-	f = fopen("data/game.cfg", "w");
-	if (! f)
-	{
-		werror(ERROR_OPEN, "data/game.cfg", "editcfg");
-		return;
-	}
-	fprintf(f, "[HUD]\n");
-	fprintf(f, "theme=%d\n\n", cfg.hud.theme);
-	fprintf(f, "[TEXT]\n");
-	fprintf(f, "speed=%f\n", (float)cfg.text.speed.tv_sec + (float)cfg.text.speed.tv_nsec / 100000000);
-	if (fclose(f))
-		werror(ERROR_CLOSE, "data/game.cfg", "editcfg");
+	cfg.display.resolution.width = 80;
+	cfg.display.resolution.height = 24;
+	cfg.hud.color = 0;
+	cfg.hud.theme = 1;
+	cfg.menu.buttons = 3;
+	cfg.text.speed.tv_sec = 0;
+	cfg.text.speed.tv_nsec = 50000000;
 }

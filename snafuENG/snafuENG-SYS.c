@@ -1,6 +1,6 @@
 #include <snafuENG.h>
 
-void setengine(bool on)
+void setengine(const bool on)
 {
 	static struct termios current, save;
 	static bool init = 0;
@@ -12,33 +12,35 @@ void setengine(bool on)
 		current = save;
 		current.c_lflag &= ~ECHO;
 		tcsetattr(0, TCSANOW, &current);
-		loadcfg();
+		setdefcfg();
+		cfg.system.cursor = 1;
 		setcur(0);
-		cfg.engine = 1;
+		cfg.system.engine = 1;
 		init = 1;
 	}
 	else if (! on && init)
 	{
 		tcsetattr(0, TCSANOW, &save);
 		setcur(1);
-		cfg.engine = 0;
+		cfg.system.engine = 0;
 		init = 0;
 	}
-	clear();
 }
 
 void fexit()
 {
-	wwarning(WARNING_EXIT, 0, "fexit");
-	printf("Snafu was forced to quit.\n");
-	printf("Please send your game.debug and game.log files to the developpers :\n");
-	printf("https://github.com/ChuOkupai/snafu\n");
+	if (cfg.system.engine)
+		setengine(0);
+	wwarning(WARNING_EXIT, 0, __func__);
+	puts("Snafu was forced to quit.");
+	printf("Please send your %s and %s files to the developpers :\n", PATH_DEBUG, PATH_LOG);
+	puts("https://github.com/ChuOkupai/snafu");
 	exit(WARNING_EXIT);
 }
 
-void checkeng(char *function)
+void checkeng(const char *function)
 {
-	if (! cfg.engine)
+	if (! cfg.system.engine)
 	{
 		werror(ERROR_ENGINE, 0, function);
 		wdebug();
@@ -50,14 +52,14 @@ void clear()
 {
 	if (system("clear") == -1)
 	{
-		werror(ERROR_SYSTEM, 0, "clear");
-		if (cfg.engine)
+		werror(ERROR_SYSTEM, 0, __func__);
+		if (cfg.system.engine)
 			setengine(0);
 		fexit();
 	}
 }
 
-void fsleep(float s)
+void fsleep(const float s)
 {
 	struct timespec	t;
 
@@ -66,7 +68,7 @@ void fsleep(float s)
 	nanosleep(&t, 0);
 }
 
-int randi(int min, int max)
+int randi(const int min, const int max)
 {
 	return (rand() % (max - min + 1)) + min;
 }
@@ -93,26 +95,26 @@ int kbhit()
 	return 0;
 }
 
-void setcur(bool on)
+void setcur(const bool on)
 {
 	bool error = 0;
 	
-	if (! cfg.cursor && on)
+	if (! cfg.system.cursor && on)
 	{
 		if (system("setterm -cursor on") == -1)
 			error++;
-		cfg.cursor = 1;
+		cfg.system.cursor = 1;
 	}
-	else if (! on && cfg.cursor)
+	else if (! on && cfg.system.cursor)
 	{
 		if (system("setterm -cursor off") == -1)
 			error++;
-		cfg.cursor = 0;
+		cfg.system.cursor = 0;
 	}
 	if (error)
 	{
-		werror(ERROR_SYSTEM, 0, "setcur");
-		if (cfg.engine)
+		werror(ERROR_SYSTEM, 0, __func__);
+		if (cfg.system.engine)
 			setengine(0);
 		wdebug();
 		fexit();

@@ -3,9 +3,12 @@
 int main(void)
 {
 	setengine(true);
-	rhud(loadascii("data/image/short"));
+	rcfg();
+	clear();
+	printhud(rascii("data/image/short"));
 	getchar();
-	snafufx();
+	printmainmenu();
 	setengine(false);
+	clear();
 	return 0;
 }

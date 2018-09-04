@@ -3,25 +3,25 @@
 #include <snafuENG-LOG.c>
 #include <snafuENG-SYS.c>
 
-char** loadascii(char *path)
+char** rascii(const char *path)
 {
-	checkeng("loadascii");
+	checkeng(__func__);
 	FILE *f = 0;
-	int c = 0, i, j, x = cfg.hud.x - 2, y = cfg.hud.y - 2;
+	int c = 0, i, j, x = cfg.display.resolution.width - 2, y = cfg.display.resolution.height - 2;
 	char **ascii;
 	
 	ascii = (char**)malloc(sizeof(char*) * y);
 	if (! ascii)
 	{
-		werror(ERROR_MEMORY, 0, "loadascii");
+		werror(ERROR_MEMORY, 0, __func__);
 		return 0;
 	}
 	for (i = 0; i < y; i++)
 	{
-		ascii[i] = malloc(x);
+		ascii[i] = malloc(sizeof(char) * x);
 		if (! ascii[i])
 		{
-			werror(ERROR_MEMORY, 0, "loadascii");
+			werror(ERROR_MEMORY, 0, __func__);
 			free(ascii);
 			return 0;
 		}
@@ -30,7 +30,7 @@ char** loadascii(char *path)
 	{
 		f = fopen(path, "r");
 		if (! f)
-			werror(ERROR_OPEN, path, "loadascii");
+			werror(ERROR_OPEN, path, __func__);
 	}
 	for (i = 0; i < y; i++)
 	{
@@ -53,7 +53,7 @@ char** loadascii(char *path)
 					else if (c == EOF)
 					{
 						if (fclose(f))
-							werror(ERROR_CLOSE, path, "loadascii");
+							werror(ERROR_CLOSE, path, __func__);
 						f = 0;
 					}
 					else
@@ -68,16 +68,16 @@ char** loadascii(char *path)
 	}
 	if (f)
 		if (fclose(f))
-			werror(ERROR_CLOSE, path, "loadascii");
+			werror(ERROR_CLOSE, path, __func__);
 	return ascii;
 }
 
-void prints(char *s)
+void prints(const char *s)
 {
-	checkeng("prints");
+	checkeng(__func__);
 	int resetcur;
 
-	if (! cfg.cursor)
+	if (! cfg.system.cursor)
 	{
 		setcur(1);
 		resetcur = 1;
@@ -97,17 +97,17 @@ void prints(char *s)
 		setcur(0);
 }
 
-int mainmenu()
+int printmainmenu()
 {
-	checkeng("mainmenu");
+	checkeng(__func__);
 	int c = 0, selection = 0;
 
 	while (! selection || c != '\n')
 	{
 		clear();
-		printf("    ┌───────────┐\n    │ ");
-		printf(BOLDWHITE "MAIN MENU │\n");
-		printf("    └───────────┘\n\n");
+		printf(COLOR_CFG "\n    ┌───────────┐\n    │ ", cfg.hud.color);
+		printf(COLOR_BOLDWHITE "MAIN MENU");
+		printf(COLOR_CFG " │\n    └───────────┘\n\n" COLOR_BOLDWHITE, cfg.hud.color);
 		if (selection == 1)
 			putchar('>');
 		printf(" New Game\n");
@@ -116,7 +116,7 @@ int mainmenu()
 		printf(" Load Game\n");
 		if (selection == 3)
 			putchar('>');
-		printf(" Quit\n" RESET);
+		printf(" Quit\n" COLOR_RESET);
 		while (! kbhit())
 			fsleep(0.07);
 		c = getchar();
@@ -144,14 +144,14 @@ int mainmenu()
 	return selection;
 }
 
-void rhud(char **image)
+void printhud(char **image)
 {
-	checkeng("rhud");
-	if (cfg.hud.x < 2 || cfg.hud.y < 2)
+	checkeng(__func__);
+	if (cfg.display.resolution.width < 2 || cfg.display.resolution.height < 2)
 		return;
-	int i, j;
+	int i, j, x = cfg.display.resolution.width, y = cfg.display.resolution.height / 2;
 	char *tlc, *trc, *llc, *lrc, *hl, *vl;
-
+	
 	if (cfg.hud.theme == 1)
 	{
 		tlc="┌"; trc="┐"; llc="└"; lrc="┘"; hl="─"; vl="│";
@@ -164,43 +164,43 @@ void rhud(char **image)
 	{
 		tlc=" "; trc=" "; llc=" "; lrc=" "; hl=" "; vl=" ";
 	}
-
-	printf("%s", tlc);
-	for (i = 0; i < cfg.hud.x - 2; i++)
+	
+	printf(COLOR_CFG "%s", cfg.hud.color, tlc);
+	for (i = 0; i < x - 2; i++)
 		printf("%s", hl);
-	puts(trc);
-	for (i = 0; i < cfg.hud.y - 2; i++)
+	printf("%s\n" COLOR_RESET, trc);
+	for (i = 0; i < y - 2; i++)
 	{
-		for (j = 0; j < cfg.hud.x + 1; j++)
+		for (j = 0; j < x + 1; j++)
 		{
-			if (j && j < cfg.hud.x - 1)
+			if (j && j < x - 1)
 			{
 				if (image)
 					printf("%c", image[i][j - 1]);
 				else
 					putchar(' ');
 			}
-			else if (j != cfg.hud.x)
-				printf("%s", vl);
+			else if (j != x)
+				printf(COLOR_CFG "%s" COLOR_RESET, cfg.hud.color, vl);
 			else
 				putchar('\n');
 		}
 	}
-	printf("%s", llc);
-	for (i = 0; i < cfg.hud.x - 2; i++)
+	printf(COLOR_CFG "%s", cfg.hud.color, llc);
+	for (i = 0; i < x - 2; i++)
 		printf("%s", hl);
-	puts(lrc);
+	printf("%s\n" COLOR_RESET, lrc);
 }
 
-void snafufx()
+void printsnafufx()
 {
-	if (cfg.hud.x - 9 < 0 || cfg.hud.y - 5 < 0)
+	if (cfg.display.resolution.width - 9 < 0 || cfg.display.resolution.height / 2 - 5 < 0)
 		return;
-	char **image = loadascii(0);
+	char **image = rascii(0);
 	int c, keep = 1, x, y;
 	
-	x = randi(0, cfg.hud.x - 7);
-	y = randi(0, cfg.hud.y - 3);
+	x = randi(0, cfg.display.resolution.width - 7);
+	y = randi(0, cfg.display.resolution.height / 2 - 3);
 	while (keep)
 	{
 		image[y][x] = 'S';
@@ -209,7 +209,7 @@ void snafufx()
 		image[y][x + 3] = 'F';
 		image[y][x + 4] = 'U';
 		clear();
-		rhud(image);
+		printhud(image);
 		if (kbhit())
 		{
 			c = getchar();
@@ -226,13 +226,13 @@ void snafufx()
 			x += randi(-1, 1);
 			if (x < 0)
 				x = 0;
-			else if (x > cfg.hud.x - 7)
-				x = cfg.hud.x - 7;
+			else if (x > cfg.display.resolution.width - 7)
+				x = cfg.display.resolution.width - 7;
 			y += randi(-1, 1);
 			if (y < 0)
 				y = 0;
-			else if (y > cfg.hud.y - 3)
-				y = cfg.hud.y - 3;
+			else if (y > cfg.display.resolution.height / 2 - 3)
+				y = cfg.display.resolution.height / 2 - 3;
 			fsleep(0.2);
 		}
 	}

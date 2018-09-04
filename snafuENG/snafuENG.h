@@ -9,89 +9,102 @@
 #include <termios.h>
 #include <unistd.h>
 
-typedef unsigned char bool;
+typedef int bool;
 #define false	0
 #define true	1
 
-#define RESET		"\033[0m"
-#define BLACK		"\033[30m"
-#define RED			"\033[31m"
-#define GREEN		"\033[32m"
-#define YELLOW		"\033[33m"
-#define BLUE		"\033[34m"
-#define MAGENTA		"\033[35m"
-#define CYAN		"\033[36m"
-#define WHITE		"\033[37m"
-#define BOLDBLACK	"\033[1m\033[30m"
-#define BOLDRED		"\033[1m\033[31m"
-#define BOLDGREEN	"\033[1m\033[32m"
-#define BOLDYELLOW	"\033[1m\033[33m"
-#define BOLDBLUE	"\033[1m\033[34m"
-#define BOLDMAGENTA	"\033[1m\033[35m"
-#define BOLDCYAN	"\033[1m\033[36m"
-#define BOLDWHITE	"\033[1m\033[37m"
+#define COLOR_CFG			"\033[%dm"
+#define COLOR_RESET			"\033[0m"
+#define COLOR_BLACK			"\033[30m"
+#define COLOR_RED			"\033[31m"
+#define COLOR_GREEN			"\033[32m"
+#define COLOR_YELLOW		"\033[33m"
+#define COLOR_BLUE			"\033[34m"
+#define COLOR_MAGENTA		"\033[35m"
+#define COLOR_CYAN			"\033[36m"
+#define COLOR_WHITE			"\033[37m"
+#define COLOR_BOLDBLACK		"\033[1m\033[30m"
+#define COLOR_BOLDRED		"\033[1m\033[31m"
+#define COLOR_BOLDGREEN		"\033[1m\033[32m"
+#define COLOR_BOLDYELLOW	"\033[1m\033[33m"
+#define COLOR_BOLDBLUE		"\033[1m\033[34m"
+#define COLOR_BOLDMAGENTA	"\033[1m\033[35m"
+#define COLOR_BOLDCYAN		"\033[1m\033[36m"
+#define COLOR_BOLDWHITE		"\033[1m\033[37m"
 
-/* écrit une message d'erreur dans le fichier log */
-#define ERROR_NODESC	-100
-#define ERROR_ENGINE	-101
-#define ERROR_OPEN		-102
-#define ERROR_CLOSE		-103
-#define ERROR_MEMORY	-104
-#define ERROR_SYSTEM	-105
-void werror(int error, char *data, char *function);
+#define PATH_DATA	"data"
+#define PATH_CFG	PATH_DATA"/game.cfg"
+#define PATH_LOG	PATH_DATA"/game.log"
+#define PATH_DEBUG	PATH_DATA"/game.debug"
 
-/* écrit une message d'avertissement dans le fichier log */
-#define WARNING_NODESC	-200
-#define WARNING_CFG		-201
-#define WARNING_EXIT	-202
-void wwarning(int warning, char *data, char *function);
+/* écriture d'un message d'erreur dans le fichier log */
+#define ERROR_NODESC	100
+#define ERROR_ENGINE	101
+#define ERROR_OPEN		102
+#define ERROR_CLOSE		103
+#define ERROR_MEMORY	104
+#define ERROR_SYSTEM	105
+void werror(const int error, const char *data, const char *function);
 
-/* écrit l'état des variables sur le fichier de débogage */
+/* écriture d'un message d'avertissement dans le fichier log */
+#define WARNING_NODESC	200
+#define WARNING_CFG		201
+#define WARNING_EXIT	202
+void wwarning(const int warning, const char *data, const char *function);
+
+/* écriture des valeurs des variables globales en mémoire sur le fichier de débogage */
 void wdebug();
 
-/* force la fermeture du programme */
+/* lecture du fichier de débogage */
+int rdebug();
+
+/* forcer la fermeture du programme */
 void fexit();
 
-/* nettoie l'écran */
-void clear();
+/* attendre un nombre de secondes s */
+void fsleep(const float s);
 
-/* attend un nombre de secondes s */
-void fsleep(float s);
+/* renvoyer un int aléatoire entre min et max */
+int randi(const int min, const int max);
 
-/* renvoie un int aléatoire entre min et max */
-int randi(int min, int max);
-
-/* détecte si une touche du clavier a été frappée */
+/* détecter si une touche du clavier a été frappée */
 /** renvoie une valeur non nulle si vrai **/
 int kbhit();
 
-/* active ou désactive le curseur */
-void setcur(bool on);
+/* activer ou désactiver le curseur */
+void setcur(const bool on);
 
-/* charge le fichier de configuration */
-void loadcfg();
+/* écriture du fichier de configuration */
+void wcfg();
 
-/* enregiste le fichier de configuration */
-void savecfg();
+/* lecture du fichier de configuration */
+void rcfg();
 
-/* initialise snafu */
-void setengine(bool on);
+/* utiliser la configuration par défaut */
+void setdefcfg();
 
-/* charge une image ascii personnalisée */
-char** loadascii(char *path);
+/* initialiser snafu */
+void setengine(const bool on);
 
-/* affiche une chaîne de caractères avec un délai entre chaque caractère */
+/* lecture et chargement en mémoire d'une image ascii */
+char** rascii(const char *path);
+
+/* nettoyage de l'écran */
+void clear();
+
+/* afficher une chaîne de caractères avec un délai entre chaque caractère */
 /** le joueur peut passer l'animation en appuyant sur la touche entrée **/
-void prints(char *s);
+void prints(const char *s);
 
-/* affiche le menu principal et attend une sélection du joueur */
-int mainmenu();
+/* afficher le menu principal et attendre une sélection du joueur */
+int printmainmenu();
 
-/* affiche l'interface avec une image ascii personnalisée */
-void rhud(char **image);
+/* afficher l'interface avec une image ascii */
+/** si l'image est nulle, affiche uniquement le hud **/
+void printhud(char **image);
 
 /* affiche SNAFU animé avec un déplacement aléatoire */
 /** pour arrêter l'animation, appuyez sur échap, entrée ou espace **/
-void snafufx();
+void printsnafufx();
 
 #endif /* snafu.h  */
