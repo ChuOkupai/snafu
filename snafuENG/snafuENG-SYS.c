@@ -14,8 +14,8 @@ void setengine(const bool on)
 		tcsetattr(0, TCSANOW, &current);
 		setdefcfg();
 		cfg.system.cursor = 1;
-		setcur(0);
 		cfg.system.engine = 1;
+		setcur(0);
 		init = 1;
 	}
 	else if (! on && init)
@@ -93,6 +93,24 @@ int kbhit()
 		return 1;
 	}
 	return 0;
+}
+
+bool getarrow(int *c)
+{
+	*c = getchar();
+	if (*c == 27)
+	{
+		*c = getchar();
+		if (*c == 91)
+		{
+			*c = getchar();
+			return 1;
+		}
+		else
+			return 0;
+	}
+	else
+		return 0;
 }
 
 void setcur(const bool on)

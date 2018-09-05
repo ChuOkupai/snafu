@@ -1,7 +1,7 @@
 #include <snafuENG.h>
 
 #define CFG_FILE_ELEMENTS	6
-#define CFG_TOTAL_ELEMENTS	CFG_FILE_ELEMENTS + 3
+#define CFG_TOTAL_ELEMENTS	CFG_FILE_ELEMENTS + 2
 
 typedef struct CFG_RESOLUTION
 {
@@ -20,11 +20,6 @@ typedef struct CFG_HUD
 	int theme;
 }	CFG_HUD;
 
-typedef struct CFG_MENU
-{
-	int buttons;
-}	CFG_MENU;
-
 typedef struct CFG_SYSTEM
 {
 	bool cursor;
@@ -40,7 +35,6 @@ typedef struct CFG_SNAFU
 {
 	CFG_DISPLAY	display;
 	CFG_HUD		hud;
-	CFG_MENU	menu;
 	CFG_SYSTEM	system;
 	CFG_TEXT	text;
 }	CFG_SNAFU;
@@ -97,11 +91,11 @@ void rcfg()
 				if (strstr(buf, "resolution"))
 				{
 					sscanf(buf, "resolution=%dx%d", &x, &y);
-					if ((x == 80 && y == 24) ||
-					(x == 100 && y == 30) ||
-					(x == 120 && y == 36) ||
-					(x == 140 && y == 42) ||
-					(x == 160 && y == 48))
+					if ((x == 80 && y == 24)
+					 || (x == 100 && y == 30)
+					 || (x == 120 && y == 36)
+					 || (x == 140 && y == 42)
+					 || (x == 160 && y == 48))
 					{
 						cfg.display.resolution.width = x;
 						cfg.display.resolution.height = y;
@@ -142,7 +136,7 @@ void rcfg()
 				if (strstr(buf, "speed"))
 				{
 					sscanf(buf, "speed=%f", &s);
-					if ((int)s >= 0 && (int)s <= 2)
+					if ((int)s >= 0 && (int)s <= 1)
 					{
 						cfg.text.speed.tv_sec = (int)s;
 						cfg.text.speed.tv_nsec = 1000000000 * (s - (int)s);
@@ -165,7 +159,6 @@ void setdefcfg()
 	cfg.display.resolution.height = 24;
 	cfg.hud.color = 0;
 	cfg.hud.theme = 1;
-	cfg.menu.buttons = 3;
 	cfg.text.speed.tv_sec = 0;
 	cfg.text.speed.tv_nsec = 50000000;
 }

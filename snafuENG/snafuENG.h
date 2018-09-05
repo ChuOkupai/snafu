@@ -44,6 +44,7 @@ typedef int bool;
 #define ERROR_CLOSE		103
 #define ERROR_MEMORY	104
 #define ERROR_SYSTEM	105
+#define ERROR_RENDER	106
 void werror(const int error, const char *data, const char *function);
 
 /* écriture d'un message d'avertissement dans le fichier log */
@@ -70,6 +71,14 @@ int randi(const int min, const int max);
 /* détecter si une touche du clavier a été frappée */
 /** renvoie une valeur non nulle si vrai **/
 int kbhit();
+
+/* récupérer l'appuie d'une touche fléchée */
+#define KEY_UP		65
+#define KEY_DOWN	66
+#define KEY_RIGHT	67
+#define KEY_LEFT	68
+/** renvoie une valeur non nulle si vrai **/
+bool getarrow(int *c);
 
 /* activer ou désactiver le curseur */
 void setcur(const bool on);

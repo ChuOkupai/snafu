@@ -49,6 +49,8 @@ void werror(const int error, const char *data, const char *function)
 		fprintf(f, "Could not allocate memory!");
 	else if (error == ERROR_SYSTEM)
 		fprintf(f, "System command returned an error!");
+	else if (error == ERROR_SYSTEM)
+		fprintf(f, "Could not render %s!", data);
 	else
 		fprintf(f, "%s", data);
 	fprintf(f, " (%s)\n", function);
@@ -85,7 +87,6 @@ void wdebug()
 		return;
 	fprintf(f, "%d,%d\n", cfg.display.resolution.width, cfg.display.resolution.height);
 	fprintf(f, "%d,%d\n", cfg.hud.color, cfg.hud.theme);
-	fprintf(f, "%d\n", cfg.menu.buttons);
 	fprintf(f, "%d,%d\n", cfg.system.cursor, cfg.system.engine);
 	fprintf(f, "%ld,%ld\n", cfg.text.speed.tv_sec, cfg.text.speed.tv_nsec);
 	fclose(f);
@@ -110,11 +111,6 @@ int rdebug()
 		fgetc(f);
 		n += 2;
 	}
-	if (fscanf(f, "%d", &dcfg.menu.buttons))
-	{
-		fgetc(f);
-		n++;
-	}
 	if (fscanf(f, "%d,%d", &dcfg.system.cursor, &dcfg.system.engine))
 	{
 		fgetc(f);
@@ -127,7 +123,6 @@ int rdebug()
 		puts("game.debug\n\ncfg:");
 		printf("cursor=%d\nengine=%d\n", dcfg.system.cursor, dcfg.system.engine);
 		printf("\ncfg.hud:\ncolor=%d\ntheme=%d\n", dcfg.hud.color, dcfg.hud.theme);
-		printf("\ncfg.menu:\nbuttons=%d\n", dcfg.menu.buttons);
 		printf("\ncfg.text:\nspeed.tv_sec=%ld\nspeed.tv_nsec=%ld\n", dcfg.text.speed.tv_sec, dcfg.text.speed.tv_nsec);
 		if (fclose(f))
 		return ERROR_CLOSE;
