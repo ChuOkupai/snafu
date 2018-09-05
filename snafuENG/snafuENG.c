@@ -387,6 +387,9 @@ bool printoptionsmenu()
 				cfg = oldcfg;
 				newcfg = cfg;
 				modified = 0;
+				hud = loadhudtheme();
+				if (! hud)
+					werror(ERROR_RENDER, "options submenu", __func__);
 				reload = 1;
 			}
 			else if (selection == 7)
@@ -394,10 +397,10 @@ bool printoptionsmenu()
 				setdefcfg();
 				newcfg = cfg;
 				modified = 0;
-				reload = 1;
 				hud = loadhudtheme();
 				if (! hud)
 					werror(ERROR_RENDER, "options submenu", __func__);
+				reload = 1;
 			}
 			if (selection != 8)
 				c = 0;
