@@ -56,7 +56,7 @@ void wcfg()
 	fprintf(f, "color=%d\n", cfg.hud.color);
 	fprintf(f, "theme=%d\n\n", cfg.hud.theme);
 	fprintf(f, "[TEXT]\n");
-	fprintf(f, "speed=%f\n", cfg.text.speed.tv_sec + (float)cfg.text.speed.tv_nsec / 100000000);
+	fprintf(f, "speed=%f\n", cfg.text.speed.tv_sec + (float)cfg.text.speed.tv_nsec / 1000000000);
 	if (fclose(f))
 		werror(ERROR_CLOSE, PATH_CFG, __func__);
 }

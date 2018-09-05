@@ -153,16 +153,19 @@ void prints(const char *s)
 
 void printtitle(const char **hud, const char *name)
 {
-	if (! hud)
-		return;
 	const int len = strlen(name) + 2;
 	int i;
 	
+	if (! hud)
+	{
+		printf(COLOR_CFG "\n\n      %s\n\n\n" COLOR_RESET, cfg.hud.color, name);
+		return;
+	}
 	printf(COLOR_CFG "\n    %s", cfg.hud.color, hud[TLC]);
 	for (i = 0; i < len; i++)
 		printf("%s", hud[HL]);
 	printf("%s\n    %s ", hud[TRC], hud[VL]);
-	printf("%s", name);
+	printf(COLOR_RESET "%s", name);
 	printf(COLOR_CFG " %s\n    %s", cfg.hud.color, hud[VL], hud[LLC]);
 	for (i = 0; i < len; i++)
 		printf("%s", hud[HL]);
@@ -178,11 +181,7 @@ bool printoptionsmenu()
 	const char **hud = loadhudtheme();
 	
 	if (! hud)
-	{
 		werror(ERROR_RENDER, "main menu", __func__);
-		wdebug();
-		fexit();
-	}
 	while (! selection || c != '\n')
 	{
 		clear();
@@ -253,7 +252,7 @@ bool printoptionsmenu()
 		printf(" Text speed : ");
 		if (selection != 4)
 			putchar(' ');
-		printf("%f\n\n", (float)newcfg.text.speed.tv_sec + (float)newcfg.text.speed.tv_nsec / 100000000);
+		printf("%f\n\n", (float)newcfg.text.speed.tv_sec + (float)newcfg.text.speed.tv_nsec / 1000000000);
 		if (modified)
 		{
 			if (selection == 5)
@@ -276,13 +275,17 @@ bool printoptionsmenu()
 			if (c == KEY_UP)
 			{
 				selection--;
-				if (selection < 1)
+				if (! modified && (selection == 5 || selection == 6))
+					selection = 4;
+				else if (selection < 1)
 					selection = 8;
 			}
 			else if (c == KEY_DOWN)
 			{
 				selection++;
-				if (selection > 8)
+				if (! modified && (selection == 5 || selection == 6))
+					selection = 7;
+				else if (selection > 8)
 					selection = 1;
 			}
 			else if (c == KEY_RIGHT)
@@ -313,7 +316,7 @@ bool printoptionsmenu()
 				}
 				else if (selection == 4 && newcfg.text.speed.tv_sec < 1)
 				{
-					if (newcfg.text.speed.tv_nsec > 99000000)
+					if (newcfg.text.speed.tv_nsec > 990000000)
 					{
 						newcfg.text.speed.tv_sec = 1;
 						newcfg.text.speed.tv_nsec = 0;
@@ -321,7 +324,7 @@ bool printoptionsmenu()
 					}
 					else
 					{
-						newcfg.text.speed.tv_nsec += 1000000;
+						newcfg.text.speed.tv_nsec += 10000000;
 						modified = 1;
 					}
 				}
@@ -358,12 +361,12 @@ bool printoptionsmenu()
 					{
 						newcfg.text.speed.tv_sec--;
 						if (! newcfg.text.speed.tv_sec)
-							newcfg.text.speed.tv_nsec = 99000000;
+							newcfg.text.speed.tv_nsec = 990000000;
 						modified = 1;
 					}
-					else if (newcfg.text.speed.tv_nsec > 4000000)
+					else if (newcfg.text.speed.tv_nsec > 50000000)
 					{
-						newcfg.text.speed.tv_nsec -= 1000000;
+						newcfg.text.speed.tv_nsec -= 10000000;
 						modified = 1;
 					}
 				}
@@ -376,11 +379,7 @@ bool printoptionsmenu()
 				cfg = newcfg;
 				hud = loadhudtheme();
 				if (! hud)
-				{
-					werror(ERROR_RENDER, "main menu", __func__);
-					wdebug();
-					fexit();
-				}
+					werror(ERROR_RENDER, "options submenu", __func__);
 				reload = 1;
 			}
 			else if (modified && selection == 6)
@@ -390,24 +389,21 @@ bool printoptionsmenu()
 				modified = 0;
 				reload = 1;
 			}
-			else if (modified && selection == 7)
+			else if (selection == 7)
 			{
 				setdefcfg();
 				newcfg = cfg;
 				modified = 0;
-				reload = 0;
+				reload = 1;
 				hud = loadhudtheme();
 				if (! hud)
-				{
-					werror(ERROR_RENDER, "main menu", __func__);
-					wdebug();
-					fexit();
-				}
+					werror(ERROR_RENDER, "options submenu", __func__);
 			}
 			if (selection != 8)
 				c = 0;
 		}
 	}
+	free(hud);
 	return reload;
 }
 
@@ -418,11 +414,7 @@ int printmainmenu()
 	const char **hud = loadhudtheme();
 	
 	if (! hud)
-	{
 		werror(ERROR_RENDER, "main menu", __func__);
-		wdebug();
-		fexit();
-	}
 	while (! selection || c != '\n')
 	{
 		clear();
@@ -464,15 +456,12 @@ int printmainmenu()
 				wcfg();
 				hud = loadhudtheme();
 				if (! hud)
-				{
 					werror(ERROR_RENDER, "main menu", __func__);
-					wdebug();
-					fexit();
-				}
 			}
 			c = 0;
 		}
 	}
+	free(hud);
 	return selection;
 }
 
