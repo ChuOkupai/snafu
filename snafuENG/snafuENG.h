@@ -27,6 +27,7 @@
 #ifndef	_SNAFU_H
 #define	_SNAFU_H	1
 
+#include <ansics.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -58,10 +59,10 @@ typedef int bool;
 #define COLOR_BOLDCYAN		"\033[1m\033[36m"
 #define COLOR_BOLDWHITE		"\033[1m\033[37m"
 
-#define PATH_DATA	"data"
-#define PATH_CFG	PATH_DATA"/game.cfg"
-#define PATH_LOG	PATH_DATA"/game.log"
-#define PATH_DEBUG	PATH_DATA"/game.debug"
+#define PATH_CFG	"data/game.cfg"
+#define PATH_LOG	"data/game.log"
+#define PATH_RLE	"data/.rlefile.temp"
+#define PATH_DEBUG	"data/game.debug"
 
 /* écriture d'un message d'erreur dans le fichier log */
 #define ERROR_NODESC	100
@@ -123,6 +124,9 @@ void setengine(const bool on);
 
 /* lecture et chargement en mémoire d'une image ascii */
 char** rascii(const char *path);
+
+/* lecture et chargement en mémoire d'une image ascii compressée */
+char** rasciirle(const char *path);
 
 /* nettoyage de l'écran */
 void clear();

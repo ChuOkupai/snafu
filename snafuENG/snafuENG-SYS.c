@@ -24,6 +24,7 @@ void setengine(const bool on)
 		setcur(1);
 		cfg.system.engine = 0;
 		init = 0;
+		remove(PATH_RLE);
 	}
 }
 

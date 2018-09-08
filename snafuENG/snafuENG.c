@@ -126,6 +126,59 @@ char** rascii(const char *path)
 	return ascii;
 }
 
+char** rasciirle(const char *path)
+{
+	FILE *in = 0, *temp = 0;
+	unsigned char n;
+	char i, j;
+	
+	in = fopen(path, "rb");
+	if (! in)
+	{
+		werror(ERROR_OPEN, path, __func__);
+		return 0;
+	}
+	temp = fopen(PATH_RLE, "w");
+	if (! temp)
+	{
+		fclose(temp);
+		werror(ERROR_OPEN, PATH_RLE, __func__);
+		return 0;
+	}
+	n = 0;
+	i = 0;
+	while (i != EOF)
+	{
+		if (fread(&n, sizeof(n), 1, in) != 1)
+			break;
+		i = fgetc(in);
+		if (i == EOF)
+			break;
+		if (n < 127)
+		{
+			fwrite(&i, 1, sizeof(i), temp);
+			for (j = 0; j < n; j++)
+			{
+				i = fgetc(in);
+				if (i == EOF)
+					break;
+				fwrite(&i, 1, sizeof(i), temp);
+			}
+		}
+		else
+		{
+			n -= 127;
+			for (j = 0; j < n; j++)
+				fwrite(&i, 1, sizeof(i), temp);
+		}
+	}
+	if (fclose(in))
+		werror(ERROR_CLOSE, path, __func__);
+	if (fclose(temp))
+		werror(ERROR_CLOSE, PATH_RLE, __func__);
+	return rascii(PATH_RLE);
+}
+
 void prints(const char *s)
 {
 	checkeng(__func__);

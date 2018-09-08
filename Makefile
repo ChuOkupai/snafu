@@ -4,7 +4,7 @@ CC=gcc
 CFLAGS=-O3 -Wall -Wextra
 LDFLAGS:=-I./$(ENG) -L. -l$(ENG)
 
-all: clean build main rdebug
+all: clean build main rdebug wrlefile
 
 clean:
 	sudo rm -f *.o *.so *.out
@@ -18,6 +18,9 @@ main:
 
 rdebug:
 	$(CC) $(CFLAGS) $@.c -o $@.out $(LDFLAGS)
+
+wrlefile:
+	$(CC) $(CFLAGS) $@.c -o $@.out
 
 run:
 	LD_LIBRARY_PATH=. ./$(SRC).out
