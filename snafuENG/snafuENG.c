@@ -141,7 +141,7 @@ char** rasciirle(const char *path)
 	temp = fopen(PATH_RLE, "w");
 	if (! temp)
 	{
-		fclose(temp);
+		fclose(in);
 		werror(ERROR_OPEN, PATH_RLE, __func__);
 		return 0;
 	}
