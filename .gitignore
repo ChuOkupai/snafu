@@ -1,1 +1,1 @@
-*.o *.so *.out *.log
+*.o *.so *.out *.debug *.log *.tmp
