@@ -15,7 +15,7 @@ const char** loadhudtheme()
 	
 	if (! hud)
 	{
-		werror(ERROR_MEMORY, 0, __func__);
+		snf_werr(SNF_ERR_MEMORY, 0, __func__);
 		return 0;
 	}
 	for (int i = 0; i < 6; i++)
@@ -23,7 +23,7 @@ const char** loadhudtheme()
 		hud[i] = malloc(3 * sizeof(char));
 		if (! hud[i])
 		{
-			werror(ERROR_MEMORY, 0, __func__);
+			snf_werr(SNF_ERR_MEMORY, 0, __func__);
 			free(hud);
 			return 0;
 		}
@@ -58,7 +58,7 @@ const char** loadhudtheme()
 	return hud;
 }
 
-char** rascii(const char *path)
+char** snf_rascii(const char *path)
 {
 	checkeng(__func__);
 	FILE *f = 0;
@@ -67,7 +67,7 @@ char** rascii(const char *path)
 	
 	if (! ascii)
 	{
-		werror(ERROR_MEMORY, 0, __func__);
+		snf_werr(SNF_ERR_MEMORY, 0, __func__);
 		return 0;
 	}
 	for (i = 0; i < y; i++)
@@ -75,7 +75,7 @@ char** rascii(const char *path)
 		ascii[i] = malloc(sizeof(char) * x);
 		if (! ascii[i])
 		{
-			werror(ERROR_MEMORY, 0, __func__);
+			snf_werr(SNF_ERR_MEMORY, 0, __func__);
 			free(ascii);
 			return 0;
 		}
@@ -84,7 +84,7 @@ char** rascii(const char *path)
 	{
 		f = fopen(path, "r");
 		if (! f)
-			werror(ERROR_OPEN, path, __func__);
+			snf_werr(SNF_ERR_OPEN, path, __func__);
 	}
 	for (i = 0; i < y; i++)
 	{
@@ -107,7 +107,7 @@ char** rascii(const char *path)
 					else if (c == EOF)
 					{
 						if (fclose(f))
-							werror(ERROR_CLOSE, path, __func__);
+							snf_werr(SNF_ERR_CLOSE, path, __func__);
 						f = 0;
 					}
 					else
@@ -122,11 +122,11 @@ char** rascii(const char *path)
 	}
 	if (f)
 		if (fclose(f))
-			werror(ERROR_CLOSE, path, __func__);
+			snf_werr(SNF_ERR_CLOSE, path, __func__);
 	return ascii;
 }
 
-char** rasciirle(const char *path)
+char** snf_rasciirle(const char *path)
 {
 	FILE *in = 0, *temp = 0;
 	unsigned char n;
@@ -135,14 +135,14 @@ char** rasciirle(const char *path)
 	in = fopen(path, "rb");
 	if (! in)
 	{
-		werror(ERROR_OPEN, path, __func__);
+		snf_werr(SNF_ERR_OPEN, path, __func__);
 		return 0;
 	}
-	temp = fopen(PATH_RLE, "w");
+	temp = fopen(SNF_PATH_TMP, "w");
 	if (! temp)
 	{
 		fclose(in);
-		werror(ERROR_OPEN, PATH_RLE, __func__);
+		snf_werr(SNF_ERR_OPEN, SNF_PATH_TMP, __func__);
 		return 0;
 	}
 	n = 0;
@@ -173,35 +173,35 @@ char** rasciirle(const char *path)
 		}
 	}
 	if (fclose(in))
-		werror(ERROR_CLOSE, path, __func__);
+		snf_werr(SNF_ERR_CLOSE, path, __func__);
 	if (fclose(temp))
-		werror(ERROR_CLOSE, PATH_RLE, __func__);
-	return rascii(PATH_RLE);
+		snf_werr(SNF_ERR_CLOSE, SNF_PATH_TMP, __func__);
+	return snf_rascii(SNF_PATH_TMP);
 }
 
-void prints(const char *s)
+void snf_prints(const char *s)
 {
 	checkeng(__func__);
-	int resetcur;
+	int resnf_setcur;
 
 	if (! cfg.system.cursor)
 	{
-		setcur(1);
-		resetcur = 1;
+		snf_setcur(1);
+		resnf_setcur = 1;
 	}
-	else resetcur = 0;
+	else resnf_setcur = 0;
 	for (int c = 0; *s; s++)
 	{
 		putchar(*s);
 		if (c != '\n')
 		{
 			nanosleep(&cfg.text.speed, 0);
-			if (kbhit())
+			if (snf_kbhit())
 				c = getchar();
 		}
 	}
-	if (resetcur)
-		setcur(0);
+	if (resnf_setcur)
+		snf_setcur(0);
 }
 
 void printtitle(const char **hud, const char *name)
@@ -211,47 +211,47 @@ void printtitle(const char **hud, const char *name)
 	
 	if (! hud)
 	{
-		printf(COLOR_CFG "\n\n      %s\n\n\n" COLOR_RESET, cfg.hud.color, name);
+		printf(SNF_CLR "\n\n      %s\n\n\n" SNF_CLR_RESET, cfg.hud.color, name);
 		return;
 	}
-	printf(COLOR_CFG "\n    %s", cfg.hud.color, hud[TLC]);
+	printf(SNF_CLR "\n    %s", cfg.hud.color, hud[TLC]);
 	for (i = 0; i < len; i++)
 		printf("%s", hud[HL]);
 	printf("%s\n    %s ", hud[TRC], hud[VL]);
-	printf(COLOR_RESET "%s", name);
-	printf(COLOR_CFG " %s\n    %s", cfg.hud.color, hud[VL], hud[LLC]);
+	printf(SNF_CLR_RESET "%s", name);
+	printf(SNF_CLR " %s\n    %s", cfg.hud.color, hud[VL], hud[LLC]);
 	for (i = 0; i < len; i++)
 		printf("%s", hud[HL]);
-	printf("%s\n\n" COLOR_RESET, hud[LRC]);
+	printf("%s\n\n" SNF_CLR_RESET, hud[LRC]);
 }
 
 bool printoptionsmenu()
 {
 	checkeng(__func__);
-	CFG_SNAFU oldcfg = cfg, newcfg = cfg;
+	CFG_SNAFU oldcfg = cfg, nesnf_wcfg = cfg;
 	bool modified = 0, reload = 0;
 	int c = 0, selection = 0;
 	const char **hud = loadhudtheme();
 	
 	if (! hud)
-		werror(ERROR_RENDER, "main menu", __func__);
+		snf_werr(SNF_ERR_RENDER, "main menu", __func__);
 	while (! selection || c != '\n')
 	{
-		clear();
+		snf_clear();
 		printtitle(hud, "OPTIONS");
-		printf(COLOR_BOLDWHITE);
+		printf(SNF_CLR_BOLDWHITE);
 		if (selection == 1)
 			putchar('>');
 		printf(" Resolution : ");
 		if (selection != 1)
 			putchar(' ');
-		printf("%d x %d\n", newcfg.display.resolution.width, newcfg.display.resolution.height);
+		printf("%d x %d\n", nesnf_wcfg.display.resolution.width, nesnf_wcfg.display.resolution.height);
 		if (selection == 2)
 			putchar('>');
 		printf(" Color :      ");
 		if (selection != 2)
 			putchar(' ');
-		switch (newcfg.hud.color)
+		switch (nesnf_wcfg.hud.color)
 		{
 			case 30:
 				printf("black");
@@ -287,7 +287,7 @@ bool printoptionsmenu()
 		printf(" Theme :      ");
 		if (selection != 3)
 			putchar(' ');
-		switch (newcfg.hud.theme)
+		switch (nesnf_wcfg.hud.theme)
 		{
 			case 1:
 				printf("simple line");
@@ -305,7 +305,7 @@ bool printoptionsmenu()
 		printf(" Text speed : ");
 		if (selection != 4)
 			putchar(' ');
-		printf("%f\n\n", (float)newcfg.text.speed.tv_sec + (float)newcfg.text.speed.tv_nsec / 1000000000);
+		printf("%f\n\n", (float)nesnf_wcfg.text.speed.tv_sec + (float)nesnf_wcfg.text.speed.tv_nsec / 1000000000);
 		if (modified)
 		{
 			if (selection == 5)
@@ -320,12 +320,12 @@ bool printoptionsmenu()
 			printf(" Reset\n");
 		if (selection == 8)
 			putchar('>');
-		printf(" Back\n" COLOR_RESET);
-		while (! kbhit())
-			fsleep(0.07);
-		if (getarrow(&c))
+		printf(" Back\n" SNF_CLR_RESET);
+		while (! snf_kbhit())
+			snf_fsleep(0.07);
+		if (snf_getarrow(&c))
 		{
-			if (c == KEY_UP)
+			if (c == SNF_KEY_UP)
 			{
 				selection--;
 				if (! modified && (selection == 5 || selection == 6))
@@ -333,7 +333,7 @@ bool printoptionsmenu()
 				else if (selection < 1)
 					selection = 8;
 			}
-			else if (c == KEY_DOWN)
+			else if (c == SNF_KEY_DOWN)
 			{
 				selection++;
 				if (! modified && (selection == 5 || selection == 6))
@@ -341,85 +341,85 @@ bool printoptionsmenu()
 				else if (selection > 8)
 					selection = 1;
 			}
-			else if (c == KEY_RIGHT)
+			else if (c == SNF_KEY_RIGHT)
 			{
-				if (selection == 1 && newcfg.display.resolution.width < 160)
+				if (selection == 1 && nesnf_wcfg.display.resolution.width < 160)
 				{
-					newcfg.display.resolution.width += 20;
-					newcfg.display.resolution.height += 6;
+					nesnf_wcfg.display.resolution.width += 20;
+					nesnf_wcfg.display.resolution.height += 6;
 					modified = 1;
 				}
 				else if (selection == 2)
 				{
-					if (newcfg.hud.color == 0)
+					if (nesnf_wcfg.hud.color == 0)
 					{
-						newcfg.hud.color = 30;
+						nesnf_wcfg.hud.color = 30;
 						modified = 1;
 					}
-					else if (newcfg.hud.color < 37)
+					else if (nesnf_wcfg.hud.color < 37)
 					{
-						newcfg.hud.color++;
+						nesnf_wcfg.hud.color++;
 						modified = 1;
 					}
 				}
-				else if (selection == 3 && newcfg.hud.theme < 2)
+				else if (selection == 3 && nesnf_wcfg.hud.theme < 2)
 				{
-					newcfg.hud.theme++;
+					nesnf_wcfg.hud.theme++;
 					modified = 1;
 				}
-				else if (selection == 4 && newcfg.text.speed.tv_sec < 1)
+				else if (selection == 4 && nesnf_wcfg.text.speed.tv_sec < 1)
 				{
-					if (newcfg.text.speed.tv_nsec > 990000000)
+					if (nesnf_wcfg.text.speed.tv_nsec > 990000000)
 					{
-						newcfg.text.speed.tv_sec = 1;
-						newcfg.text.speed.tv_nsec = 0;
+						nesnf_wcfg.text.speed.tv_sec = 1;
+						nesnf_wcfg.text.speed.tv_nsec = 0;
 						modified = 1;
 					}
 					else
 					{
-						newcfg.text.speed.tv_nsec += 10000000;
+						nesnf_wcfg.text.speed.tv_nsec += 10000000;
 						modified = 1;
 					}
 				}
 			}
-			else if (c == KEY_LEFT)
+			else if (c == SNF_KEY_LEFT)
 			{
-				if (selection == 1 && newcfg.display.resolution.width > 80)
+				if (selection == 1 && nesnf_wcfg.display.resolution.width > 80)
 				{
-					newcfg.display.resolution.width -= 20;
-					newcfg.display.resolution.height -= 6;
+					nesnf_wcfg.display.resolution.width -= 20;
+					nesnf_wcfg.display.resolution.height -= 6;
 					modified = 1;
 				}
 				else if (selection == 2)
 				{
-					if (newcfg.hud.color == 30)
+					if (nesnf_wcfg.hud.color == 30)
 					{
-						newcfg.hud.color = 0;
+						nesnf_wcfg.hud.color = 0;
 						modified = 1;
 					}
-					else if (newcfg.hud.color > 30)
+					else if (nesnf_wcfg.hud.color > 30)
 					{
-						newcfg.hud.color--;
+						nesnf_wcfg.hud.color--;
 						modified = 1;
 					}
 				}
-				else if (selection == 3 && newcfg.hud.theme > 0)
+				else if (selection == 3 && nesnf_wcfg.hud.theme > 0)
 				{
-					newcfg.hud.theme--;
+					nesnf_wcfg.hud.theme--;
 					modified = 1;
 				}
 				else if (selection == 4)
 				{
-					if (newcfg.text.speed.tv_sec >= 1)
+					if (nesnf_wcfg.text.speed.tv_sec >= 1)
 					{
-						newcfg.text.speed.tv_sec--;
-						if (! newcfg.text.speed.tv_sec)
-							newcfg.text.speed.tv_nsec = 990000000;
+						nesnf_wcfg.text.speed.tv_sec--;
+						if (! nesnf_wcfg.text.speed.tv_sec)
+							nesnf_wcfg.text.speed.tv_nsec = 990000000;
 						modified = 1;
 					}
-					else if (newcfg.text.speed.tv_nsec > 50000000)
+					else if (nesnf_wcfg.text.speed.tv_nsec > 50000000)
 					{
-						newcfg.text.speed.tv_nsec -= 10000000;
+						nesnf_wcfg.text.speed.tv_nsec -= 10000000;
 						modified = 1;
 					}
 				}
@@ -429,30 +429,30 @@ bool printoptionsmenu()
 		{
 			if (modified && selection == 5)
 			{
-				cfg = newcfg;
+				cfg = nesnf_wcfg;
 				hud = loadhudtheme();
 				if (! hud)
-					werror(ERROR_RENDER, "options submenu", __func__);
+					snf_werr(SNF_ERR_RENDER, "options submenu", __func__);
 				reload = 1;
 			}
 			else if (modified && selection == 6)
 			{
 				cfg = oldcfg;
-				newcfg = cfg;
+				nesnf_wcfg = cfg;
 				modified = 0;
 				hud = loadhudtheme();
 				if (! hud)
-					werror(ERROR_RENDER, "options submenu", __func__);
+					snf_werr(SNF_ERR_RENDER, "options submenu", __func__);
 				reload = 1;
 			}
 			else if (selection == 7)
 			{
-				setdefcfg();
-				newcfg = cfg;
+				snf_setdefcfg();
+				nesnf_wcfg = cfg;
 				modified = 0;
 				hud = loadhudtheme();
 				if (! hud)
-					werror(ERROR_RENDER, "options submenu", __func__);
+					snf_werr(SNF_ERR_RENDER, "options submenu", __func__);
 				reload = 1;
 			}
 			if (selection != 8)
@@ -463,19 +463,19 @@ bool printoptionsmenu()
 	return reload;
 }
 
-int printmainmenu()
+int snf_printmainmenu()
 {
 	checkeng(__func__);
 	int c = 0, selection = 0;
 	const char **hud = loadhudtheme();
 	
 	if (! hud)
-		werror(ERROR_RENDER, "main menu", __func__);
+		snf_werr(SNF_ERR_RENDER, "main menu", __func__);
 	while (! selection || c != '\n')
 	{
-		clear();
+		snf_clear();
 		printtitle(hud, "MAIN MENU");
-		printf(COLOR_BOLDWHITE);
+		printf(SNF_CLR_BOLDWHITE);
 		if (selection == 1)
 			putchar('>');
 		printf(" New Game\n");
@@ -487,18 +487,18 @@ int printmainmenu()
 		printf(" Options\n");
 		if (selection == 4)
 			putchar('>');
-		printf(" Quit\n" COLOR_RESET);
-		while (! kbhit())
-			fsleep(0.07);
-		if (getarrow(&c))
+		printf(" Quit\n" SNF_CLR_RESET);
+		while (! snf_kbhit())
+			snf_fsleep(0.07);
+		if (snf_getarrow(&c))
 		{
-			if (c == KEY_UP)
+			if (c == SNF_KEY_UP)
 			{
 				selection--;
 				if (selection < 1)
 					selection = 4;
 			}
-			else if (c == KEY_DOWN)
+			else if (c == SNF_KEY_DOWN)
 			{
 				selection++;
 				if (selection > 4)
@@ -509,10 +509,10 @@ int printmainmenu()
 		{
 			if (printoptionsmenu())
 			{
-				wcfg();
+				snf_wcfg();
 				hud = loadhudtheme();
 				if (! hud)
-					werror(ERROR_RENDER, "main menu", __func__);
+					snf_werr(SNF_ERR_RENDER, "main menu", __func__);
 			}
 			c = 0;
 		}
@@ -521,7 +521,7 @@ int printmainmenu()
 	return selection;
 }
 
-void printhud(char **image)
+void snf_printhud(char **image)
 {
 	checkeng(__func__);
 	if (cfg.display.resolution.width < 2 || cfg.display.resolution.height < 2)
@@ -531,14 +531,14 @@ void printhud(char **image)
 	
 	if (! hud)
 	{
-		werror(ERROR_RENDER, "hud", __func__);
-		wdebug();
-		fexit();
+		snf_werr(SNF_ERR_RENDER, "hud", __func__);
+		snf_wdebug();
+		snf_fexit();
 	}
-	printf(COLOR_CFG "%s", cfg.hud.color, hud[TLC]);
+	printf(SNF_CLR "%s", cfg.hud.color, hud[TLC]);
 	for (i = 0; i < x - 2; i++)
 		printf("%s", hud[HL]);
-	printf("%s\n" COLOR_RESET, hud[TRC]);
+	printf("%s\n" SNF_CLR_RESET, hud[TRC]);
 	for (i = 0; i < y - 2; i++)
 	{
 		for (j = 0; j < x + 1; j++)
@@ -551,26 +551,26 @@ void printhud(char **image)
 					putchar(' ');
 			}
 			else if (j != x)
-				printf(COLOR_CFG "%s" COLOR_RESET, cfg.hud.color, hud[VL]);
+				printf(SNF_CLR "%s" SNF_CLR_RESET, cfg.hud.color, hud[VL]);
 			else
 				putchar('\n');
 		}
 	}
-	printf(COLOR_CFG "%s", cfg.hud.color, hud[LLC]);
+	printf(SNF_CLR "%s", cfg.hud.color, hud[LLC]);
 	for (i = 0; i < x - 2; i++)
 		printf("%s", hud[HL]);
-	printf("%s\n" COLOR_RESET, hud[LRC]);
+	printf("%s\n" SNF_CLR_RESET, hud[LRC]);
 }
 
-void printsnafufx()
+void snf_printsnafufx()
 {
 	if (cfg.display.resolution.width - 9 < 0 || cfg.display.resolution.height / 2 - 5 < 0)
 		return;
-	char **image = rascii(0);
+	char **image = snf_rascii(0);
 	int c, keep = 1, x, y;
 	
-	x = randi(0, cfg.display.resolution.width - 7);
-	y = randi(0, cfg.display.resolution.height / 2 - 3);
+	x = snf_randi(0, cfg.display.resolution.width - 7);
+	y = snf_randi(0, cfg.display.resolution.height / 2 - 3);
 	while (keep)
 	{
 		image[y][x] = 'S';
@@ -578,9 +578,9 @@ void printsnafufx()
 		image[y][x + 2] = 'A';
 		image[y][x + 3] = 'F';
 		image[y][x + 4] = 'U';
-		clear();
-		printhud(image);
-		if (kbhit())
+		snf_clear();
+		snf_printhud(image);
+		if (snf_kbhit())
 		{
 			c = getchar();
 			if (c == 10 || c == 27 || c == ' ')
@@ -593,17 +593,17 @@ void printsnafufx()
 			image[y][x + 2] = ' ';
 			image[y][x + 3] = ' ';
 			image[y][x + 4] = ' ';
-			x += randi(-1, 1);
+			x += snf_randi(-1, 1);
 			if (x < 0)
 				x = 0;
 			else if (x > cfg.display.resolution.width - 7)
 				x = cfg.display.resolution.width - 7;
-			y += randi(-1, 1);
+			y += snf_randi(-1, 1);
 			if (y < 0)
 				y = 0;
 			else if (y > cfg.display.resolution.height / 2 - 3)
 				y = cfg.display.resolution.height / 2 - 3;
-			fsleep(0.2);
+			snf_fsleep(0.2);
 		}
 	}
 }

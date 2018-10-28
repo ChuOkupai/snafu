@@ -1,15 +1,12 @@
 /* 
- * Compress data file from datasrc directory with rle algorithm
- * and send it to data directory
+ * Compress data file with RLE algorithm
  * 
  * How to use:
- * ./wrlefile "PATH_0" "PATH_1" ... "PATH_n"
+ * ./wrlefile "SNF_PATH_0" "SNF_PATH_1" ... "SNF_PATH_n"
  * 
  * Example:
- * ./wrlefile "image/points"
- * > It will compress the file "image/points"
- * 
- * Return 0 on success else number of error(s)
+ * $> ./wrlefile "foo"
+ * It will compress the file "foo" and save it as "foo.rle"
  */
 #include <stdio.h>
 
@@ -26,7 +23,7 @@ int rlecompress(const char *inputfile, const char *outputfile)
 	if (! outputf)
 	{
 		fclose(inputf);
-		return 1;
+		return 2;
 	}
 	i = fgetc(inputf);
 	j = fgetc(inputf);
@@ -74,25 +71,43 @@ int rlecompress(const char *inputfile, const char *outputfile)
 		i = j;
 		j = fgetc(inputf);
 	}
-	if (fclose(inputf) || fclose(outputf))
-		return 1;
+	if (fclose(inputf))
+		return 3;
+	if (fclose(outputf))
+		return 4;
 	return 0;
 }
 
 int main(int argc, char **argv)
 {
-	char in[64], out[64];
-	int n;
+	if (argc < 2)
+	{
+		printf("%s: missing file\n", argv[0]);
+		return 1;
+	}
+	char in[250], out[250];
+	int e;
 	
-	n = (argc > 1) ? 0 : 1;
 	for (int i = 1; i < argc; i++)
 	{
-		if (sprintf(in, "datasrc/%s", argv[i]) < 0)
-			return n + 1;
-		if (sprintf(out, "data/%s", argv[i]) < 0)
-			return n + 1;
-		n += rlecompress(in, out);
+		if (sprintf(in, "%s", argv[i]) < 0 || sprintf(out, "%s.rle", argv[i]) < 0)
+		{
+			printf("%s: %s: sprintf error\n", argv[0], argv[i]);
+			return 2;
+		}
+		e = rlecompress(in, out);
+		if (e)
+		{
+			printf("%s: ", argv[0]);
+			if (e == 1)
+				printf("%s: No such file or directory", in);
+			if (e == 2)
+				printf("%s: Couldn't create file", out);
+			else
+				printf("%s: Couldn't close file", (e == 3) ? in : out);
+			putchar('\n');
+			return 3;
+		}
 	}
-	printf("%d\n", n);
-	return n;
+	return 0;
 }

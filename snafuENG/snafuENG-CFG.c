@@ -40,14 +40,14 @@ typedef struct CFG_SNAFU
 }	CFG_SNAFU;
 CFG_SNAFU cfg;
 
-void wcfg()
+void snf_wcfg()
 {
 	FILE *f = 0;
 	
-	f = fopen(PATH_CFG, "w");
+	f = fopen(SNF_PATH_CFG, "w");
 	if (! f)
 	{
-		werror(ERROR_OPEN, PATH_CFG, __func__);
+		snf_werr(SNF_ERR_OPEN, SNF_PATH_CFG, __func__);
 		return;
 	}
 	fprintf(f, "[DISPLAY]\n");
@@ -58,20 +58,20 @@ void wcfg()
 	fprintf(f, "[TEXT]\n");
 	fprintf(f, "speed=%f\n", cfg.text.speed.tv_sec + (float)cfg.text.speed.tv_nsec / 1000000000);
 	if (fclose(f))
-		werror(ERROR_CLOSE, PATH_CFG, __func__);
+		snf_werr(SNF_ERR_CLOSE, SNF_PATH_CFG, __func__);
 }
 
-void rcfg()
+void snf_rcfg()
 {
 	FILE *f = 0;
 	char buf[18];
 	float s;
 	int hud = -1, display = -1, text = -1, x, y;
 
-	f = fopen(PATH_CFG, "r");
+	f = fopen(SNF_PATH_CFG, "r");
 	if (! f)
 	{
-		werror(ERROR_OPEN, PATH_CFG, __func__);
+		snf_werr(SNF_ERR_OPEN, SNF_PATH_CFG, __func__);
 		return;
 	}
 	while (fgets(buf, 18, f))
@@ -101,7 +101,7 @@ void rcfg()
 						cfg.display.resolution.height = y;
 					}
 					else
-						wwarning(WARNING_CFG, "resolution", __func__);
+						snf_wwarn(SNF_WARN_CFG, "resolution", __func__);
 					display += 2;
 					break;
 				}
@@ -114,7 +114,7 @@ void rcfg()
 					if (! x || (x >= 30 && x <= 37))
 						cfg.hud.color = x;
 					else
-						wwarning(WARNING_CFG, "HUD color", __func__);
+						snf_wwarn(SNF_WARN_CFG, "HUD color", __func__);
 					hud++;
 					if (hud == 2)
 						break;
@@ -125,7 +125,7 @@ void rcfg()
 					if (x >= 0 && x <= 2)
 						cfg.hud.theme = x;
 					else
-						wwarning(WARNING_CFG, "HUD theme", __func__);
+						snf_wwarn(SNF_WARN_CFG, "HUD theme", __func__);
 					hud++;
 					if (hud == 2)
 						break;
@@ -142,7 +142,7 @@ void rcfg()
 						cfg.text.speed.tv_nsec = 1000000000 * (s - (int)s);
 					}
 					else
-						wwarning(WARNING_CFG, "text speed", __func__);
+						snf_wwarn(SNF_WARN_CFG, "text speed", __func__);
 					text += 2;	
 					break;
 				}
@@ -150,10 +150,10 @@ void rcfg()
 		}
 	}
 	if (fclose(f))
-		werror(ERROR_CLOSE, PATH_CFG, __func__);
+		snf_werr(SNF_ERR_CLOSE, SNF_PATH_CFG, __func__);
 }
 
-void setdefcfg()
+void snf_setdefcfg()
 {
 	cfg.display.resolution.width = 80;
 	cfg.display.resolution.height = 24;

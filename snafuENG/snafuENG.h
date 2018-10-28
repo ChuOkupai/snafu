@@ -24,10 +24,9 @@
  * SOFTWARE.
  */
 
-#ifndef	_SNAFU_H
-#define	_SNAFU_H	1
+#ifndef	_SNAFUENG_H
+# define	_SNAFUENG_H	1
 
-#include <ansics.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -36,114 +35,119 @@
 #include <termios.h>
 #include <unistd.h>
 
+#define SNF_PATH_CFG	"data/game.cfg"
+#define SNF_PATH_DEBUG	"game.debug"
+#define SNF_PATH_LOG	"game.log"
+#define SNF_PATH_IMG	"data/images/"
+#define SNF_PATH_TMP	"data/.tmpfile"
+
 typedef int bool;
 #define false	0
 #define true	1
 
-#define COLOR_CFG			"\033[%dm"
-#define COLOR_RESET			"\033[0m"
-#define COLOR_BLACK			"\033[30m"
-#define COLOR_RED			"\033[31m"
-#define COLOR_GREEN			"\033[32m"
-#define COLOR_YELLOW		"\033[33m"
-#define COLOR_BLUE			"\033[34m"
-#define COLOR_MAGENTA		"\033[35m"
-#define COLOR_CYAN			"\033[36m"
-#define COLOR_WHITE			"\033[37m"
-#define COLOR_BOLDBLACK		"\033[1m\033[30m"
-#define COLOR_BOLDRED		"\033[1m\033[31m"
-#define COLOR_BOLDGREEN		"\033[1m\033[32m"
-#define COLOR_BOLDYELLOW	"\033[1m\033[33m"
-#define COLOR_BOLDBLUE		"\033[1m\033[34m"
-#define COLOR_BOLDMAGENTA	"\033[1m\033[35m"
-#define COLOR_BOLDCYAN		"\033[1m\033[36m"
-#define COLOR_BOLDWHITE		"\033[1m\033[37m"
-
-#define PATH_CFG	"data/game.cfg"
-#define PATH_LOG	"data/game.log"
-#define PATH_RLE	"data/.rlefile.temp"
-#define PATH_DEBUG	"data/game.debug"
+#define SNF_CLR				"\033[%dm"
+#define SNF_CLR_RESET		"\033[0m"
+#define SNF_CLR_BLACK		"\033[30m"
+#define SNF_CLR_RED			"\033[31m"
+#define SNF_CLR_GREEN		"\033[32m"
+#define SNF_CLR_YELLOW		"\033[33m"
+#define SNF_CLR_BLUE		"\033[34m"
+#define SNF_CLR_MAGENTA		"\033[35m"
+#define SNF_CLR_CYAN		"\033[36m"
+#define SNF_CLR_WHITE		"\033[37m"
+#define SNF_CLR_BOLDBLACK	"\033[1m\033[30m"
+#define SNF_CLR_BOLDRED		"\033[1m\033[31m"
+#define SNF_CLR_BOLDGREEN	"\033[1m\033[32m"
+#define SNF_CLR_BOLDYELLOW	"\033[1m\033[33m"
+#define SNF_CLR_BOLDBLUE	"\033[1m\033[34m"
+#define SNF_CLR_BOLDMAGENTA	"\033[1m\033[35m"
+#define SNF_CLR_BOLDCYAN	"\033[1m\033[36m"
+#define SNF_CLR_BOLDWHITE	"\033[1m\033[37m"
 
 /* écriture d'un message d'erreur dans le fichier log */
-#define ERROR_NODESC	100
-#define ERROR_ENGINE	101
-#define ERROR_OPEN		102
-#define ERROR_CLOSE		103
-#define ERROR_MEMORY	104
-#define ERROR_SYSTEM	105
-#define ERROR_RENDER	106
-void werror(const int error, const char *data, const char *function);
+#define SNF_ERR_NODESC	100
+#define SNF_ERR_ENGINE	101
+#define SNF_ERR_OPEN	102
+#define SNF_ERR_CLOSE	103
+#define SNF_ERR_MEMORY	104
+#define SNF_ERR_SYSTEM	105
+#define SNF_ERR_RENDER	106
+void snf_werr(const int error, const char *data, const char *function);
 
 /* écriture d'un message d'avertissement dans le fichier log */
-#define WARNING_NODESC	200
-#define WARNING_CFG		201
-#define WARNING_EXIT	202
-void wwarning(const int warning, const char *data, const char *function);
+#define SNF_WARN_NODESC	200
+#define SNF_WARN_CFG	201
+#define SNF_WARN_EXIT	202
+void snf_wwarn(const int warning, const char *data, const char *function);
 
 /* écriture des valeurs des variables globales en mémoire sur le fichier de débogage */
-void wdebug();
+void snf_wdebug();
 
 /* lecture du fichier de débogage */
-int rdebug();
+int snf_rdebug();
 
 /* forcer la fermeture du programme */
-void fexit();
+void snf_fexit();
 
 /* attendre un nombre de secondes s */
-void fsleep(const float s);
+void snf_fsleep(const float s);
 
 /* renvoyer un int aléatoire entre min et max */
-int randi(const int min, const int max);
+int snf_randi(const int min, const int max);
 
 /* détecter si une touche du clavier a été frappée */
 /** renvoie une valeur non nulle si vrai **/
-int kbhit();
+int snf_kbhit();
+
+/* attendre que l'utilisateur presse la touche entrée */
+/** équivalent de getchar() **/
+int snf_waitret();
 
 /* récupérer l'appuie d'une touche fléchée */
-#define KEY_UP		65
-#define KEY_DOWN	66
-#define KEY_RIGHT	67
-#define KEY_LEFT	68
+#define SNF_KEY_UP		65
+#define SNF_KEY_DOWN	66
+#define SNF_KEY_RIGHT	67
+#define SNF_KEY_LEFT	68
 /** renvoie une valeur non nulle si vrai **/
-bool getarrow(int *c);
+bool snf_getarrow(int *c);
 
 /* activer ou désactiver le curseur */
-void setcur(const bool on);
+void snf_setcur(const bool on);
 
 /* écriture du fichier de configuration */
-void wcfg();
+void snf_wcfg();
 
 /* lecture du fichier de configuration */
-void rcfg();
+void snf_rcfg();
 
 /* utiliser la configuration par défaut */
-void setdefcfg();
+void snf_setdefcfg();
 
 /* initialiser snafu */
-void setengine(const bool on);
+void snf_seteng(const bool on);
 
 /* lecture et chargement en mémoire d'une image ascii */
-char** rascii(const char *path);
+char** snf_rascii(const char *path);
 
 /* lecture et chargement en mémoire d'une image ascii compressée */
-char** rasciirle(const char *path);
+char** snf_rasciirle(const char *path);
 
 /* nettoyage de l'écran */
-void clear();
+void snf_clear();
 
 /* afficher une chaîne de caractères avec un délai entre chaque caractère */
 /** le joueur peut passer l'animation en appuyant sur la touche entrée **/
-void prints(const char *s);
+void snf_prints(const char *s);
 
 /* afficher le menu principal et attendre une sélection du joueur */
-int printmainmenu();
+int snf_printmainmenu();
 
 /* afficher l'interface avec une image ascii */
 /** si l'image est nulle, affiche uniquement le hud **/
-void printhud(char **image);
+void snf_printhud(char **image);
 
 /* affiche SNAFU animé avec un déplacement aléatoire */
 /** pour arrêter l'animation, appuyez sur échap, entrée ou espace **/
-void printsnafufx();
+void snf_printsnafufx();
 
-#endif /* snafu.h  */
+#endif /* snafuENG.h  */

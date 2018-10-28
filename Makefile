@@ -1,29 +1,29 @@
-SRC=snafu
-ENG:=$(SRC)ENG
+ENG=snafuENG
+GAME=snafu
 CC=gcc
-CFLAGS=-O3 -Wall -Wextra
+CFLAGS=-O3 -Wall -Wextra -Werror
 LDFLAGS:=-I./$(ENG) -L. -l$(ENG)
 
-all: clean build main rdebug wrlefile
-
 clean:
-	sudo rm -f *.o *.so *.out
+	rm -f *.out
+	cd $(ENG) && make clean
+	cd $(GAME) && make clean
 
-build:
-	$(CC) $(CFLAGS) -c -fpic ./$(ENG)/$(ENG).c -I./$(ENG)
-	$(CC) $(CFLAGS) -shared -o lib$(ENG).so $(ENG).o
+update: wrlef.out $(GAME).out
 
-main:
-	$(CC) $(CFLAGS) $@.c -o $(SRC).out $(LDFLAGS)
+all: clean update
 
-rdebug:
-	$(CC) $(CFLAGS) $@.c -o $@.out $(LDFLAGS)
+lib$(ENG).so:
+	cd $(ENG) && make $@
 
-wrlefile:
-	$(CC) $(CFLAGS) $@.c -o $@.out
+wrlef.out:
+	cd $(ENG) && make $@ && cp wrlef.out ..
 
-run:
-	LD_LIBRARY_PATH=. ./$(SRC).out
+exportlib: lib$(ENG).so
+	cd $(ENG) && cp $< ../snafu/bin && cp $(ENG).h ../snafu
 
-debug:
-	LD_LIBRARY_PATH=. ./rdebug.out
+$(GAME).out: exportlib
+	cd $(GAME) && make $@
+
+run: snafu.out
+	cd $(GAME) && make run

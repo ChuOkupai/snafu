@@ -1,6 +1,6 @@
 #include <snafuENG.h>
 
-void setengine(const bool on)
+void snf_seteng(const bool on)
 {
 	static struct termios current, save;
 	static bool init = 0;
@@ -12,55 +12,55 @@ void setengine(const bool on)
 		current = save;
 		current.c_lflag &= ~ECHO;
 		tcsetattr(0, TCSANOW, &current);
-		setdefcfg();
+		snf_setdefcfg();
 		cfg.system.cursor = 1;
 		cfg.system.engine = 1;
-		setcur(0);
+		snf_setcur(0);
 		init = 1;
 	}
 	else if (! on && init)
 	{
 		tcsetattr(0, TCSANOW, &save);
-		setcur(1);
+		snf_setcur(1);
 		cfg.system.engine = 0;
 		init = 0;
-		remove(PATH_RLE);
+		remove(SNF_PATH_TMP);
 	}
 }
 
-void fexit()
+void snf_fexit()
 {
 	if (cfg.system.engine)
-		setengine(0);
-	wwarning(WARNING_EXIT, 0, __func__);
+		snf_seteng(0);
+	snf_wwarn(SNF_WARN_EXIT, 0, __func__);
 	puts("Snafu was forced to quit.");
-	printf("Please send your %s and %s files to the developpers :\n", PATH_DEBUG, PATH_LOG);
+	printf("Please send your %s and %s files to the developpers :\n", SNF_PATH_DEBUG, SNF_PATH_LOG);
 	puts("https://github.com/ChuOkupai/snafu");
-	exit(WARNING_EXIT);
+	exit(SNF_WARN_EXIT);
 }
 
 void checkeng(const char *function)
 {
 	if (! cfg.system.engine)
 	{
-		werror(ERROR_ENGINE, 0, function);
-		wdebug();
-		fexit();
+		snf_werr(SNF_ERR_ENGINE, 0, function);
+		snf_wdebug();
+		snf_fexit();
 	}
 }
 
-void clear()
+void snf_clear()
 {
 	if (system("clear") == -1)
 	{
-		werror(ERROR_SYSTEM, 0, __func__);
+		snf_werr(SNF_ERR_SYSTEM, 0, __func__);
 		if (cfg.system.engine)
-			setengine(0);
-		fexit();
+			snf_seteng(0);
+		snf_fexit();
 	}
 }
 
-void fsleep(const float s)
+void snf_fsleep(const float s)
 {
 	struct timespec	t;
 
@@ -69,12 +69,12 @@ void fsleep(const float s)
 	nanosleep(&t, 0);
 }
 
-int randi(const int min, const int max)
+int snf_randi(const int min, const int max)
 {
 	return (rand() % (max - min + 1)) + min;
 }
 
-int kbhit()
+int snf_kbhit()
 {
 	struct termios oldt, newt;
 	int c, oldf;
@@ -96,7 +96,12 @@ int kbhit()
 	return 0;
 }
 
-bool getarrow(int *c)
+int snf_waitret()
+{
+	return getchar();
+}
+
+bool snf_getarrow(int *c)
 {
 	*c = getchar();
 	if (*c == 27)
@@ -114,7 +119,7 @@ bool getarrow(int *c)
 		return 0;
 }
 
-void setcur(const bool on)
+void snf_setcur(const bool on)
 {
 	bool error = 0;
 	
@@ -132,10 +137,10 @@ void setcur(const bool on)
 	}
 	if (error)
 	{
-		werror(ERROR_SYSTEM, 0, __func__);
+		snf_werr(SNF_ERR_SYSTEM, 0, __func__);
 		if (cfg.system.engine)
-			setengine(0);
-		wdebug();
-		fexit();
+			snf_seteng(0);
+		snf_wdebug();
+		snf_fexit();
 	}
 }

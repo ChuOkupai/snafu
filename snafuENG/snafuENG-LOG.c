@@ -26,30 +26,30 @@ void wlogtime(FILE *f)
 	fprintf(f, "%d : ", tm.tm_sec);
 }
 
-void werror(const int error, const char *data, const char *function)
+void snf_werr(const int error, const char *data, const char *function)
 {
 	FILE *f = 0;
 
-	f = fopen(PATH_LOG, "a");
+	f = fopen(SNF_PATH_LOG, "a");
 	if (! f)
 		return;
 	wlogtime(f);
 	fprintf(f, "ERROR - ");
-	if (error == ERROR_NODESC)
+	if (error == SNF_ERR_NODESC)
 		fprintf(f, "No description.");
-	else if (error == ERROR_ENGINE)
+	else if (error == SNF_ERR_ENGINE)
 		fprintf(f, "Engine not started!");
-	else if (error == ERROR_OPEN || error == ERROR_CLOSE)
+	else if (error == SNF_ERR_OPEN || error == SNF_ERR_CLOSE)
 	{
 		fprintf(f, "Could not ");
-		fprintf(f, (error == ERROR_OPEN) ? "open" : "close");	
+		fprintf(f, (error == SNF_ERR_OPEN) ? "open" : "close");	
 		fprintf(f, " file %s!", data);
 	}
-	else if (error == ERROR_MEMORY)
+	else if (error == SNF_ERR_MEMORY)
 		fprintf(f, "Could not allocate memory!");
-	else if (error == ERROR_SYSTEM)
+	else if (error == SNF_ERR_SYSTEM)
 		fprintf(f, "System command returned an error!");
-	else if (error == ERROR_SYSTEM)
+	else if (error == SNF_ERR_SYSTEM)
 		fprintf(f, "Could not render %s!", data);
 	else
 		fprintf(f, "%s", data);
@@ -57,20 +57,20 @@ void werror(const int error, const char *data, const char *function)
 	fclose(f);
 }
 
-void wwarning(const int warning, const char *data, const char *function)
+void snf_wwarn(const int warning, const char *data, const char *function)
 {
 	FILE *f = 0;
 
-	f = fopen(PATH_LOG, "a");
+	f = fopen(SNF_PATH_LOG, "a");
 	if (! f)
 		return;
 	wlogtime(f);
 	fprintf(f, "WARNING - ");
-	if (warning == WARNING_NODESC)
+	if (warning == SNF_WARN_NODESC)
 		fprintf(f, "No description.");
-	else if (warning == WARNING_CFG)
+	else if (warning == SNF_WARN_CFG)
 		fprintf(f, "Forbidden value set to %s!", data);
-	else if (warning == WARNING_EXIT)
+	else if (warning == SNF_WARN_EXIT)
 		fprintf(f, "Exit.");
 	else
 		fprintf(f, "%s", data);
@@ -78,11 +78,11 @@ void wwarning(const int warning, const char *data, const char *function)
 	fclose(f);
 }
 
-void wdebug()
+void snf_wdebug()
 {
 	FILE *f = 0;
 
-	f = fopen(PATH_DEBUG, "w");
+	f = fopen(SNF_PATH_DEBUG, "w");
 	if (! f)
 		return;
 	fprintf(f, "%d,%d\n", cfg.display.resolution.width, cfg.display.resolution.height);
@@ -92,15 +92,15 @@ void wdebug()
 	fclose(f);
 }
 
-int rdebug()
+int snf_rdebug()
 {
 	FILE *f = 0;
 	CFG_SNAFU dcfg;
 	int	n = 0;
 
-	f = fopen(PATH_DEBUG, "r");
+	f = fopen(SNF_PATH_DEBUG, "r");
 	if (! f)
-		return ERROR_OPEN;
+		return SNF_ERR_OPEN;
 	if (fscanf(f, "%d,%d", &dcfg.display.resolution.width, &dcfg.display.resolution.height))
 	{
 		fgetc(f);
@@ -125,7 +125,7 @@ int rdebug()
 		printf("\ncfg.hud:\ncolor=%d\ntheme=%d\n", dcfg.hud.color, dcfg.hud.theme);
 		printf("\ncfg.text:\nspeed.tv_sec=%ld\nspeed.tv_nsec=%ld\n", dcfg.text.speed.tv_sec, dcfg.text.speed.tv_nsec);
 		if (fclose(f))
-		return ERROR_CLOSE;
+		return SNF_ERR_CLOSE;
 	}
 	return CFG_TOTAL_ELEMENTS - n;
 }
