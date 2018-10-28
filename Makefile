@@ -20,7 +20,7 @@ wrlef.out:
 	cd $(ENG) && make $@ && cp wrlef.out ..
 
 exportlib: lib$(ENG).so
-	mkdir snafu/bin
+	mkdir -p snafu/bin
 	cd $(ENG) && cp $< ../snafu/bin && cp $(ENG).h ../snafu
 
 $(GAME).out: exportlib
