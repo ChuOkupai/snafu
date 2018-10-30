@@ -2,10 +2,10 @@ ENG=snafuENG
 GAME=snafu
 CC=gcc
 CFLAGS=-O3 -Wall -Wextra -Werror
-LDFLAGS:=-I. -L./bin -l$(ENG)
+LDFLAGS:=-I../$(ENG) -L./bin -l$(ENG)
 
 clean:
-	rm -f *.debug *.log *.out bin/* $(ENG).h
+	rm -f *.debug *.log *.out bin/*
 
 $(GAME).out: main.c
 	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)

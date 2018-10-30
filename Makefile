@@ -1,8 +1,5 @@
 ENG=snafuENG
 GAME=snafu
-CC=gcc
-CFLAGS=-O3 -Wall -Wextra -Werror
-LDFLAGS:=-I./$(ENG) -L. -l$(ENG)
 
 clean:
 	rm -f *.out
@@ -21,7 +18,7 @@ wrlef.out:
 
 exportlib: lib$(ENG).so
 	mkdir -p snafu/bin
-	cd $(ENG) && cp $< ../snafu/bin && cp $(ENG).h ../snafu
+	cd $(ENG) && cp $< ../snafu/bin
 
 $(GAME).out: exportlib
 	cd $(GAME) && make $@
