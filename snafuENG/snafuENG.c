@@ -9,7 +9,7 @@
 #define LRC	3
 #define HL	4
 #define VL	5
-const char** loadhudtheme()
+const char** snf_loadhudtheme()
 {
 	const char **hud = (const char**)malloc(6 * sizeof(const char*));
 	
@@ -231,7 +231,7 @@ bool printoptionsmenu()
 	CFG_SNAFU oldcfg = cfg, nesnf_wcfg = cfg;
 	bool modified = 0, reload = 0;
 	int c = 0, selection = 0;
-	const char **hud = loadhudtheme();
+	const char **hud = snf_loadhudtheme();
 	
 	if (! hud)
 		snf_werr(SNF_ERR_RENDER, "main menu", __func__);
@@ -430,7 +430,7 @@ bool printoptionsmenu()
 			if (modified && selection == 5)
 			{
 				cfg = nesnf_wcfg;
-				hud = loadhudtheme();
+				hud = snf_loadhudtheme();
 				if (! hud)
 					snf_werr(SNF_ERR_RENDER, "options submenu", __func__);
 				reload = 1;
@@ -440,7 +440,7 @@ bool printoptionsmenu()
 				cfg = oldcfg;
 				nesnf_wcfg = cfg;
 				modified = 0;
-				hud = loadhudtheme();
+				hud = snf_loadhudtheme();
 				if (! hud)
 					snf_werr(SNF_ERR_RENDER, "options submenu", __func__);
 				reload = 1;
@@ -450,7 +450,7 @@ bool printoptionsmenu()
 				snf_setdefcfg();
 				nesnf_wcfg = cfg;
 				modified = 0;
-				hud = loadhudtheme();
+				hud = snf_loadhudtheme();
 				if (! hud)
 					snf_werr(SNF_ERR_RENDER, "options submenu", __func__);
 				reload = 1;
@@ -467,7 +467,7 @@ int snf_printmainmenu()
 {
 	checkeng(__func__);
 	int c = 0, selection = 0;
-	const char **hud = loadhudtheme();
+	const char **hud = snf_loadhudtheme();
 	
 	if (! hud)
 		snf_werr(SNF_ERR_RENDER, "main menu", __func__);
@@ -510,7 +510,7 @@ int snf_printmainmenu()
 			if (printoptionsmenu())
 			{
 				snf_wcfg();
-				hud = loadhudtheme();
+				hud = snf_loadhudtheme();
 				if (! hud)
 					snf_werr(SNF_ERR_RENDER, "main menu", __func__);
 			}
@@ -527,7 +527,7 @@ void snf_printhud(char **image)
 	if (cfg.display.resolution.width < 2 || cfg.display.resolution.height < 2)
 		return;
 	int i, j, x = cfg.display.resolution.width, y = cfg.display.resolution.height / 2;
-	const char **hud = loadhudtheme();
+	const char **hud = snf_loadhudtheme();
 	
 	if (! hud)
 	{
