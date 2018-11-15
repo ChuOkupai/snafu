@@ -2,6 +2,7 @@
 
 void snf_seteng(const bool on)
 {
+	// + check if program is running in terminal (isatty)
 	static struct termios current, save;
 	static bool init = 0;
 
