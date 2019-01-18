@@ -1,27 +1,36 @@
-ENG=snafuENG
-GAME=snafu
+ENG = snafuENG
+GAME = snafu
+CC = gcc
+CFLAGS = -O3 -Wall -Wextra -Werror -I./include -I./$(ENG)/include
+LDFLAGS = -L./lib -l$(ENG)
+VERSION = $(shell cat include/snafu.h | grep Version | cut -b 13-18)
 
 clean:
-	rm -f *.out
-	cd $(ENG) && make clean
-	cd $(GAME) && make clean
+	make -C $(ENG) clean
+	rm -f *.debug *.log *.out *.zip
+	rm -rf bin lib $(GAME)
 
-update: wrlef.out $(GAME).out
+bin/$(GAME).out: src/snafu.c
+	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
 
-all: clean update
+build:
+	make -C $(ENG) lib$(ENG).so
+	mkdir -p bin lib
+	cp $(ENG)/lib$(ENG).so lib
+	make bin/$(GAME).out
 
-lib$(ENG).so:
-	cd $(ENG) && make $@
+run: build
+	LD_LIBRARY_PATH=./lib ./bin/$(GAME).out
 
-wrlef.out:
-	cd $(ENG) && make $@ && cp wrlef.out ..
-
-exportlib: lib$(ENG).so
-	mkdir -p snafu/bin
-	cd $(ENG) && cp $< ../snafu/bin
-
-$(GAME).out: exportlib
-	cd $(GAME) && make $@
-
-run: snafu.out
-	cd $(GAME) && make run
+export: build
+	mkdir $(GAME)
+	cp assets/launch.sh $(GAME)
+	cp assets/README $(GAME)
+	mv bin $(GAME)
+	cp -r data $(GAME)
+	cp $(ENG)/LICENSE lib
+	mv lib $(GAME)
+	cp LICENSE $(GAME)
+	echo $(VERSION) > $(GAME)/version
+	zip -r $(GAME)-$(VERSION).zip $(GAME)
+	rm -r $(GAME)

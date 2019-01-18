@@ -1,4 +1,5 @@
 #include <snafuENG.h>
+#include <snafu.h>
 
 int main()
 {
@@ -6,6 +7,9 @@ int main()
 	snf_rcfg();
 	snf_clear();
 	snf_prints("Hello, my name is Jean-Pierre!\nI am currently testing the prints function...\n");
+	snf_waitret();
+	snf_clear();
+	snf_printhud(snf_rasciirle(SNF_PATH_IMG "points"));
 	snf_waitret();
 	snf_clear();
 	snf_printhud(snf_rasciirle(SNF_PATH_IMG "short"));

@@ -1,0 +1,3 @@
+[submodule "snafuENG"]
+	path = snafuENG
+	url = git://github.com/ChuOkupai/snafuENG.git
